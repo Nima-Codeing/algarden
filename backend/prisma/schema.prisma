@@ -11,3 +11,48 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ========== Enum ==========
+enum GardenPeriod {
+  MONTHLY
+}
+
+// ========== Model ==========
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamptz(0)
+  todos     Todo[] // 全期間のtodo
+  gardens   Garden[]
+}
+
+model Garden {
+  id           String       @id @default(uuid()) @db.Uuid
+  periodType   GardenPeriod
+  isActive     Boolean      @default(true)
+  snapshotUrl  String?
+  startedAt    DateTime     @default(now()) @db.Timestamptz(0)
+  endedAt      DateTime?    @db.Timestamptz(0) // 期間終了時に日付格納
+  createdAt    DateTime     @default(now()) @db.Timestamptz(0)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(0)
+  todos        Todo[] // この期間に作ったTodoという概念
+  plantedSeeds Seed[]
+  plants       Plant[] // Garden内の全ネットワークを保持
+  userId       String       @db.Uuid
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Todo {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(30)
+  isCompleted Boolean  @default(false)
+  completedAt DateTime @db.Timestamptz(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(0)
+  plantNodes PlantNode[]
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gardenId    String   @db.Uuid
+  garden      Garden   @relation(fields: [gardenId], references: [id], onDelete: Cascade)
+}
