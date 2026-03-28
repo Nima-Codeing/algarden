@@ -13,8 +13,20 @@ datasource db {
 }
 
 // ========== Enum ==========
+// 記録期間
 enum GardenPeriod {
   MONTHLY
+}
+
+enum SeedType {
+  DFS
+}
+
+enum GrowthStage {
+  SPROUT
+  YOUNG
+  MATURE
+  BLOOM
 }
 
 // ========== Model ==========
@@ -23,36 +35,79 @@ model User {
   name      String   @db.VarChar(255)
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
-  createdAt DateTime @default(now()) @db.Timestamptz(0)
   todos     Todo[] // 全期間のtodo
   gardens   Garden[]
+  createdAt DateTime @default(now()) @db.Timestamptz(0)
 }
 
 model Garden {
   id           String       @id @default(uuid()) @db.Uuid
-  periodType   GardenPeriod
-  isActive     Boolean      @default(true)
   snapshotUrl  String?
-  startedAt    DateTime     @default(now()) @db.Timestamptz(0)
-  endedAt      DateTime?    @db.Timestamptz(0) // 期間終了時に日付格納
-  createdAt    DateTime     @default(now()) @db.Timestamptz(0)
-  updatedAt    DateTime     @updatedAt @db.Timestamptz(0)
+  isActive     Boolean      @default(true)
+  periodType   GardenPeriod
   todos        Todo[] // この期間に作ったTodoという概念
   plantedSeeds Seed[]
   plants       Plant[] // Garden内の全ネットワークを保持
   userId       String       @db.Uuid
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt    DateTime     @default(now()) @db.Timestamptz(0)
+  endedAt      DateTime?    @db.Timestamptz(0) // 期間終了時に日付格納
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(0)
+  createdAt    DateTime     @default(now()) @db.Timestamptz(0)
 }
 
 model Todo {
-  id          String   @id @default(uuid()) @db.Uuid
-  title       String   @db.VarChar(30)
-  isCompleted Boolean  @default(false)
-  completedAt DateTime @db.Timestamptz(0)
-  createdAt   DateTime @default(now()) @db.Timestamptz(0)
-  plantNodes PlantNode[]
-  userId      String   @db.Uuid
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gardenId    String   @db.Uuid
-  garden      Garden   @relation(fields: [gardenId], references: [id], onDelete: Cascade)
+  id          String      @id @default(uuid()) @db.Uuid
+  title       String      @db.VarChar(30)
+  isCompleted Boolean     @default(false)
+  plantNodes  PlantNode[] // Todoから生成された概念
+  userId      String      @db.Uuid
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gardenId    String      @db.Uuid
+  garden      Garden      @relation(fields: [gardenId], references: [id], onDelete: Cascade)
+  completedAt DateTime?   @db.Timestamptz(0)
+  createdAt   DateTime    @default(now()) @db.Timestamptz(0)
+}
+
+model Seed {
+  id        String    @id @default(uuid()) @db.Uuid
+  px        Float
+  py        Float
+  isPlanted Boolean   @default(false)
+  seedType  SeedType
+  plant     Plant? // Seedを植えたらPlantが生成される
+  gardenId  String    @db.Uuid
+  garden    Garden    @relation(fields: [gardenId], references: [id], onDelete: Cascade)
+  plantedAt DateTime? @db.Timestamptz(0)
+  createdAt DateTime  @default(now()) @db.Timestamptz(0)
+}
+
+model Plant {
+  id          String      @id @default(uuid()) @db.Uuid
+  growthStage GrowthStage @default(SPROUT)
+  nodeCount   Int         @default(1) // Seed植え付け時のルートノード含む
+  plantNodes  PlantNode[]
+  gardenId    String      @db.Uuid
+  garden      Garden      @relation(fields: [gardenId], references: [id], onDelete: Cascade)
+  seedId      String      @unique @db.Uuid
+  seed        Seed        @relation(fields: [seedId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now()) @db.Timestamptz(0)
+}
+
+model PlantNode {
+  id        String      @id @default(uuid()) @db.Uuid
+  hue       Float
+  size      Float
+  angle     Float
+  length    Float // 親ノードから自ノードまでの距離
+  depth     Int         @default(0)
+  parentId  String?     @db.Uuid
+  parent    PlantNode?  @relation("ParentChildren", fields: [parentId], references: [id], onDelete: NoAction)
+  // NoAction: PostgreSQLの循環的Cascade禁止のため。Plant削除時はplantIdのCascadeで全Node削除される
+  children  PlantNode[] @relation("ParentChildren")
+  todoId    String?     @db.Uuid
+  todo      Todo?       @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  plantId   String      @db.Uuid
+  plant     Plant       @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now()) @db.Timestamptz(0)
 }
