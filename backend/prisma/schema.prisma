@@ -35,19 +35,19 @@ model User {
   name      String   @db.VarChar(255)
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
-  todos     Todo[] // 全期間のtodo
+  todos     Todo[]   // 全期間のtodo
   gardens   Garden[]
   createdAt DateTime @default(now()) @db.Timestamptz(0)
 }
 
 model Garden {
   id           String       @id @default(uuid()) @db.Uuid
-  snapshotUrl  String?
+  snapshotUrl  String?      // v2: スクリーンショット保存用
   isActive     Boolean      @default(true)
   periodType   GardenPeriod
-  todos        Todo[] // この期間に作ったTodoという概念
+  todos        Todo[]       // この期間に作ったTodoという概念
   plantedSeeds Seed[]
-  plants       Plant[] // Garden内の全ネットワークを保持
+  plants       Plant[]      // Garden内の全ネットワークを保持
   userId       String       @db.Uuid
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   startedAt    DateTime     @default(now()) @db.Timestamptz(0)
@@ -57,16 +57,18 @@ model Garden {
 }
 
 model Todo {
-  id          String      @id @default(uuid()) @db.Uuid
-  title       String      @db.VarChar(30)
-  isCompleted Boolean     @default(false)
-  plantNodes  PlantNode[] // Todoから生成された概念
-  userId      String      @db.Uuid
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gardenId    String      @db.Uuid
-  garden      Garden      @relation(fields: [gardenId], references: [id], onDelete: Cascade)
-  completedAt DateTime?   @db.Timestamptz(0)
-  createdAt   DateTime    @default(now()) @db.Timestamptz(0)
+  id             String      @id @default(uuid()) @db.Uuid
+  title          String      @db.VarChar(30)
+  isCompleted    Boolean     @default(false)
+  targetDuration Int?        // 目標時間(秒)
+  plantNodes     PlantNode[] // Todoから生成された概念
+  userId         String      @db.Uuid
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gardenId       String      @db.Uuid
+  garden         Garden      @relation(fields: [gardenId], references: [id], onDelete: Cascade)
+  startedAt      DateTime?   @db.Timestamptz(0)
+  completedAt    DateTime?   @db.Timestamptz(0)
+  createdAt      DateTime    @default(now()) @db.Timestamptz(0)
 }
 
 model Seed {
@@ -75,7 +77,7 @@ model Seed {
   py        Float
   isPlanted Boolean   @default(false)
   seedType  SeedType
-  plant     Plant? // Seedを植えたらPlantが生成される
+  plant     Plant?    // Seedを植えたらPlantが生成される
   gardenId  String    @db.Uuid
   garden    Garden    @relation(fields: [gardenId], references: [id], onDelete: Cascade)
   plantedAt DateTime? @db.Timestamptz(0)
@@ -91,6 +93,7 @@ model Plant {
   garden      Garden      @relation(fields: [gardenId], references: [id], onDelete: Cascade)
   seedId      String      @unique @db.Uuid
   seed        Seed        @relation(fields: [seedId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime    @updatedAt @db.Timestamptz(0)
   createdAt   DateTime    @default(now()) @db.Timestamptz(0)
 }
 
@@ -99,7 +102,7 @@ model PlantNode {
   hue       Float
   size      Float
   angle     Float
-  length    Float // 親ノードから自ノードまでの距離
+  length    Float       // 親ノードから自ノードまでの距離
   depth     Int         @default(0)
   parentId  String?     @db.Uuid
   parent    PlantNode?  @relation("ParentChildren", fields: [parentId], references: [id], onDelete: NoAction)
