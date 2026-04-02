@@ -63,13 +63,6 @@ export async function main() {
       gardenId: devGarden.id,
     },
   });
-
-  console.log('| + devUserID  : ' + devUser.id);
-  console.log('| + devGardenID: ' + devGarden.id);
-  for (const u of devTodos) {
-    console.log('| + devTodosID : ' + u.id);
-  }
-  console.log('| + devSeedID  : ' + devSeed.id);
 }
 
 main()

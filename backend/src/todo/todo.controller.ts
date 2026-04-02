@@ -1,7 +1,22 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { TodoService } from './todo.service';
+import { Todo } from 'generated/prisma/client';
+import { CreateTodoDto } from './dto/create-todo.dto';
 
-@Controller('todo')
+@Controller('todos')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
+
+  // test用
+  DEV_USER_ID: string = '025386ed-94f7-4fce-a4fe-6e734d1d32ea';
+  DEV_GARDEN_ID: string = 'dfa918ab-60aa-4bea-880b-707183db098f';
+
+  @Post()
+  async createTodo(@Body() createTodoDto: CreateTodoDto): Promise<Todo> {
+    return await this.todoService.createTodo(
+      createTodoDto,
+      this.DEV_USER_ID,
+      this.DEV_GARDEN_ID,
+    );
+  }
 }
