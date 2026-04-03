@@ -7,6 +7,14 @@ import { CreateTodoDto } from './dto/create-todo.dto';
 export class TodoService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  async findByGardenId(gardenId: string): Promise<Todo[]> {
+    return await this.prismaService.todo.findMany({
+      where: {
+        gardenId,
+      },
+    });
+  }
+
   async create(
     createTodoDto: CreateTodoDto,
     userId: string,
