@@ -28,10 +28,16 @@ export class TodoService {
     });
   }
 
-  async update(updateTodoDto: UpdateTodoDto, todoId: string): Promise<Todo> {
+  async update(updateTodoDto: UpdateTodoDto, id: string): Promise<Todo> {
     return await this.prismaService.todo.update({
-      where: { id: todoId },
+      where: { id },
       data: { ...updateTodoDto },
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prismaService.todo.delete({
+      where: { id },
     });
   }
 }
