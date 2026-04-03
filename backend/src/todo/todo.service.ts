@@ -7,7 +7,7 @@ import { CreateTodoDto } from './dto/create-todo.dto';
 export class TodoService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createTodo(
+  async create(
     createTodoDto: CreateTodoDto,
     userId: string,
     gardenId: string,

@@ -12,8 +12,8 @@ export class TodoController {
   DEV_GARDEN_ID: string = 'dfa918ab-60aa-4bea-880b-707183db098f';
 
   @Post()
-  async createTodo(@Body() createTodoDto: CreateTodoDto): Promise<Todo> {
-    return await this.todoService.createTodo(
+  async create(@Body() createTodoDto: CreateTodoDto): Promise<Todo> {
+    return await this.todoService.create(
       createTodoDto,
       this.DEV_USER_ID,
       this.DEV_GARDEN_ID,
