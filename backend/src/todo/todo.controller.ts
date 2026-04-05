@@ -46,4 +46,10 @@ export class TodoController {
   async delete(@Param('id') id: string): Promise<void> {
     await this.todoService.delete(id);
   }
+
+  // タイマー開始 + 同時起動チェック
+  @Patch(':id/start')
+  async startTimer(@Param('id') id: string): Promise<Todo> {
+    return await this.todoService.startTimer(id, this.DEV_GARDEN_ID);
+  }
 }
