@@ -22,6 +22,7 @@ export async function main() {
   await prisma.user.deleteMany();
   await prisma.todo.deleteMany();
   await prisma.seed.deleteMany();
+  await prisma.plant.deleteMany();
 
   const devUser = await prisma.user.create({
     data: {
@@ -61,6 +62,23 @@ export async function main() {
       py: 0,
       seedType: SeedType.DFS,
       gardenId: devGarden.id,
+    },
+  });
+
+  const devPlant = await prisma.plant.create({
+    data: {
+      gardenId: devGarden.id,
+      seedId: devSeed.id,
+    },
+  });
+
+  const devPlantNode = await prisma.plantNode.create({
+    data: {
+      hue: 200,
+      size: 10,
+      angle: 90,
+      length: 30,
+      plantId: devPlant.id,
     },
   });
 }
