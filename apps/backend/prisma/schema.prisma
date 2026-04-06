@@ -29,6 +29,14 @@ enum GrowthStage {
   BLOOM
 }
 
+enum TodoScore {
+  S
+  A
+  B
+  C
+  D
+}
+
 // ========== Model ==========
 model User {
   id        String   @id @default(uuid()) @db.Uuid
@@ -61,6 +69,7 @@ model Todo {
   title          String      @db.VarChar(30)
   isCompleted    Boolean     @default(false)
   targetDuration Int?        // 目標時間(秒)
+  score          TodoScore?
   userId         String      @db.Uuid
   gardenId       String      @db.Uuid
   startedAt      DateTime?   @db.Timestamptz(0)
