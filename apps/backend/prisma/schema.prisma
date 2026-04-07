@@ -110,7 +110,6 @@ model PlantNode {
   id        String      @id @default(uuid()) @db.Uuid
   hue       Float
   size      Float
-  angle     Float
   length    Float       // 親ノードから自ノードまでの距離
   depth     Int         @default(0)
   parentId  String?     @db.Uuid

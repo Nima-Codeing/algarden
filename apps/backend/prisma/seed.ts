@@ -74,9 +74,8 @@ export async function main() {
 
   const devPlantNode = await prisma.plantNode.create({
     data: {
-      hue: 200,
+      hue: 120,
       size: 10,
-      angle: 90,
       length: 30,
       plantId: devPlant.id,
     },
