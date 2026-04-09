@@ -8,7 +8,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
-import { Todo } from 'generated/prisma/client';
+import { PlantNode, Todo } from 'generated/prisma/client';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 
@@ -17,8 +17,8 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   // test用
-  DEV_USER_ID: string = '0430b4bd-7ea1-40cc-9481-78c879c98198';
-  DEV_GARDEN_ID: string = 'd0be871b-a0bc-457f-999a-2f858765d591';
+  DEV_USER_ID: string = '97a02587-9347-47d1-902d-b26c7be36b29';
+  DEV_GARDEN_ID: string = '42b7f91d-8b5f-4dc7-8d19-e2b657547015';
 
   @Get()
   async findByGardenId(): Promise<Todo[]> {
@@ -51,5 +51,13 @@ export class TodoController {
   @Patch(':id/start')
   async startTimer(@Param('id') id: string): Promise<Todo> {
     return await this.todoService.startTimer(id, this.DEV_GARDEN_ID);
+  }
+
+  @Patch(':id/complete')
+  async complete(
+    @Param('id') id: string,
+    @Body('plantId') plantId: string,
+  ): Promise<PlantNode[]> {
+    return await this.todoService.complete(id, plantId);
   }
 }
