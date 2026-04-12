@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import {
   GrowthStage,
+  Plant,
   PlantNode,
   Todo,
   TodoScore,
@@ -12,20 +13,138 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
+import {
+  CompleteTodo,
+  CreatedNode,
+  GrowthStageResult,
+  PlantWithNode,
+  Score,
+} from './types/todo.types';
 
 @Injectable()
 export class TodoService {
   constructor(private readonly prismaService: PrismaService) {}
 
   /**
-   * 少数を含むランダムな値を生成（範囲：min <= return <= max）
-   * @param min
-   * @param max
-   * @returns
+   * 指定された範囲内のランダムな小数を生成する
+   *
+   * @param {number} min - 最小値(含む)
+   * @param {number} max - 最大値(含む)
+   * @returns {number} min以上max以下のランダムな小数
+   * @throws {Error} minがmaxより大きい場合
    */
-  random(min: number, max: number): number {
+  private random(min: number, max: number): number {
+    if (min > max) {
+      throw new Error('最小値は最大値以下である必要があります');
+    }
     return Math.random() * (max - min) + min;
   }
+
+  /**
+   * Todoの作業時間と目標時間の差分率からスコアランクとノード生成数を算出する
+   *
+   * @param {CompleteTodo} completeTodo - 完了するTodo
+   * @returns {Score} スコアランクと生成するノード数
+   */
+  private calcScore(completeTodo: CompleteTodo): Score {
+    const { startedAt, completedAt, targetDuration } = completeTodo;
+
+    // 目標時間が未設定の場合はスコアなしでノード1個
+    if (!targetDuration) return { nodeCount: 1 };
+
+    // 作業時間(秒)
+    const timeSpent: number =
+      (completedAt.getTime() - startedAt.getTime()) / 1000;
+
+    // 目標値と実値の差分率
+    const dissociationRate: number =
+      Math.abs(timeSpent - targetDuration) / targetDuration;
+
+    if (dissociationRate <= 0.05) {
+      return { rank: TodoScore.S, nodeCount: 5 };
+    } else if (dissociationRate <= 0.1) {
+      return { rank: TodoScore.A, nodeCount: 4 };
+    } else if (dissociationRate <= 0.25) {
+      return { rank: TodoScore.B, nodeCount: 3 };
+    } else if (dissociationRate <= 0.5) {
+      return { rank: TodoScore.C, nodeCount: 2 };
+    } else {
+      return { rank: TodoScore.D, nodeCount: 1 };
+    }
+  }
+
+  /**
+   * 指定された個数の子ノードをランダムな親から生成する
+   *
+   * @param {number} count - 生成するノード数
+   * @param {PlantWithNode} selectPlant - ノードを追加するPlant
+   * @param {string} todoId - ノードの生成元となるTodoのid
+   * @returns {CreatedNode[]} 生成したノード配列
+   */
+  private generateNode(
+    count: number,
+    selectPlant: PlantWithNode,
+    todoId: string,
+  ): CreatedNode[] {
+    const createdNodes: CreatedNode[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const nodeIndex: number = Math.floor(
+        Math.random() * selectPlant.plantNodes.length,
+      );
+      const parentNode: PlantNode = selectPlant.plantNodes[nodeIndex];
+
+      if (!parentNode) {
+        throw new BadRequestException('親ノードが見つかりません。');
+      }
+
+      // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
+      const childNode: CreatedNode = {
+        hue: Math.max(80, 120 - parentNode.depth * 4),
+        size: Math.max(3, parentNode.size * this.random(0.65, 0.88)),
+        length: Math.max(5, parentNode.length * this.random(0.8, 1.1)),
+        depth: parentNode.depth + 1,
+        parentId: parentNode.id,
+        plantId: selectPlant.id,
+        todoId,
+      };
+
+      createdNodes.push(childNode);
+    }
+
+    return createdNodes;
+  }
+
+  /**
+   * 追加ノード数をもとにPlantの現在の成長段階と昇格有無を算出する
+   *
+   * @param {Plant} selectPlant - 対象Plant
+   * @param {number} addNodeCnt - 追加するノード数
+   * @returns {GrowthStageResult} 現在の成長段階と昇格フラグ
+   */
+  private calcGrowthStage(
+    selectPlant: Plant,
+    addNodeCnt: number,
+  ): GrowthStageResult {
+    const curNodeCnt = selectPlant.nodeCount + addNodeCnt;
+
+    const curStage: GrowthStage =
+      curNodeCnt <= 5
+        ? GrowthStage.SPROUT
+        : curNodeCnt <= 15
+          ? GrowthStage.YOUNG
+          : curNodeCnt <= 30
+            ? GrowthStage.MATURE
+            : GrowthStage.BLOOM;
+
+    const isPromotion: boolean = selectPlant.growthStage !== curStage;
+
+    return {
+      curStage,
+      isPromotion,
+    };
+  }
+  // -----------------------------------------------------------------------------
 
   async findByGardenId(gardenId: string): Promise<Todo[]> {
     return await this.prismaService.todo.findMany({
@@ -60,8 +179,15 @@ export class TodoService {
     });
   }
 
+  /**
+   * Todoのタイマーを起動する
+   * 同一Garden内で同時に起動できるタイマーは1つのみ
+   *
+   * @param {string} todoId - タイマーを起動するTodoのid
+   * @param {string} gardenId - 指定Todoが属するGardenのid
+   * @returns {Todo} タイマーを起動したTodo
+   */
   async startTimer(todoId: string, gardenId: string): Promise<Todo> {
-    // 同時起動チェック
     const activeTodo = await this.prismaService.todo.findFirst({
       where: {
         gardenId,
@@ -69,11 +195,11 @@ export class TodoService {
         completedAt: null,
       },
     });
+
     if (activeTodo) {
       throw new BadRequestException('他TODOのタイマーが作動しています。');
     }
 
-    // タイマー開始
     return await this.prismaService.todo.update({
       where: {
         id: todoId,
@@ -83,8 +209,14 @@ export class TodoService {
     });
   }
 
+  /**
+   * Todoを完了し、スコアに応じたノードをPlantに追加する
+   *
+   * @param {string} todoId - 完了させるTodoのid
+   * @param {string} plantId - ノードを追加するPlantのid
+   * @returns {PlantNode[]} 生成・保存されたノード配列
+   */
   async complete(todoId: string, plantId: string): Promise<PlantNode[]> {
-    // タイマー起動中のTODOか確認
     const currentTodo = await this.prismaService.todo.findFirst({
       where: {
         id: todoId,
@@ -92,211 +224,65 @@ export class TodoService {
         completedAt: null,
       },
     });
+
     if (!currentTodo) {
       throw new BadRequestException('現在取り組んでいるタスクではありません。');
     }
 
-    // completeAt生成
-    const startedAt = currentTodo.startedAt;
-    const targetDuration = currentTodo.targetDuration;
-    const completedAt = new Date();
+    const completeTodo: CompleteTodo = {
+      startedAt: currentTodo.startedAt!,
+      completedAt: new Date(),
+      targetDuration: currentTodo.targetDuration,
+    };
 
-    // スコアリング
-    if (targetDuration) {
-      if (startedAt) {
-        // 取り組んだ時間(秒)
-        const timeSpent: number =
-          (completedAt.getTime() - startedAt?.getTime()) / 1000;
-        // 目標値と実値の差分率
-        const changeRate: number =
-          Math.abs(timeSpent - targetDuration) / targetDuration;
+    const score = this.calcScore(completeTodo);
 
-        // ノード生成数算出
-        const calcScore = () => {
-          if (changeRate <= 0.05) {
-            // TODO:特殊演出
-            return { rank: TodoScore.S, nodeCount: 5 };
-          } else if (changeRate <= 0.1) {
-            return { rank: TodoScore.A, nodeCount: 4 };
-          } else if (changeRate <= 0.25) {
-            return { rank: TodoScore.B, nodeCount: 3 };
-          } else if (changeRate <= 0.5) {
-            return { rank: TodoScore.C, nodeCount: 2 };
-          } else {
-            return { rank: TodoScore.D, nodeCount: 1 };
-          }
-        };
-        const score = calcScore();
+    const selectPlant = await this.prismaService.plant.findUnique({
+      where: { id: plantId },
+      include: { plantNodes: true },
+    });
 
-        const selectPlant = await this.prismaService.plant.findUnique({
-          where: { id: plantId },
-          include: { plantNodes: true },
-        });
-        if (selectPlant) {
-          type CreatedNode = {
-            hue: number;
-            size: number;
-            length: number;
-            depth: number;
-            parentId: string;
-            todoId: string;
-            plantId: string;
-          };
-          const createdNodes: CreatedNode[] = [];
-
-          // plantNode生成
-          // 2週目以降対象PlantのplantNodesが更新されない？
-          for (let i = 0; i < score.nodeCount; i++) {
-            // 親ノードランダム決定
-            // TODO: MAX_CHILDREN = 3;
-            const nodeIndex: number = Math.floor(
-              Math.random() * selectPlant.plantNodes.length,
-            );
-            const parentNode: PlantNode = selectPlant.plantNodes[nodeIndex];
-
-            if (parentNode) {
-              if (selectPlant.plantNodes.length === 0) {
-                throw new BadRequestException('Plantにノードが存在しません。');
-              }
-              // 子ノード生成(色相やサイズは親ノードからそのまま遺伝)
-              const childNode: CreatedNode = {
-                hue: Math.max(80, 120 - parentNode.depth * 4),
-                size: Math.max(3, parentNode.size * this.random(0.65, 0.88)),
-                length: Math.max(5, parentNode.length * this.random(0.8, 1.1)),
-                depth: parentNode.depth + 1,
-                parentId: parentNode.id,
-                todoId: currentTodo.id,
-                plantId: selectPlant.id,
-              };
-
-              createdNodes.push(childNode);
-            } else {
-              throw new BadRequestException('親ノードが見つかりません。');
-            }
-          }
-
-          // Plant成長段階算出
-          const updatedNodeCnt = selectPlant.nodeCount + score.nodeCount;
-          const calcGrowthStage = (): GrowthStage => {
-            if (updatedNodeCnt <= 5) return GrowthStage.SPROUT;
-            else if (updatedNodeCnt <= 15) return GrowthStage.YOUNG;
-            else if (updatedNodeCnt <= 30) return GrowthStage.MATURE;
-            else return GrowthStage.BLOOM;
-          };
-          const growthStage = calcGrowthStage();
-          if (selectPlant.growthStage !== growthStage) {
-            // TODO: 成長段階が上がった場合の演出
-          }
-
-          // DB反映
-          const [resPlant, resNodes, resTodo] =
-            await this.prismaService.$transaction([
-              // plant更新
-              this.prismaService.plant.update({
-                where: {
-                  id: selectPlant.id,
-                },
-                data: {
-                  nodeCount: updatedNodeCnt,
-                  growthStage,
-                },
-              }),
-              // node生成
-              this.prismaService.plantNode.createManyAndReturn({
-                data: [...createdNodes],
-              }),
-              // todo更新
-              this.prismaService.todo.update({
-                where: {
-                  id: currentTodo.id,
-                },
-                data: {
-                  score: score.rank,
-                  isCompleted: true,
-                  completedAt,
-                },
-              }),
-            ]);
-
-          return resNodes;
-        } else {
-          throw new NotFoundException('選択したPlantが見つかりません。');
-        }
-      } else {
-        throw new NotFoundException('現在取り組んでいるタスクが存在しません。');
-      }
-    } else {
-      // 1node
-      const resNodes: PlantNode[] = [];
-      const score = { rank: TodoScore.D, nodeCount: 1 };
-
-      const selectPlant = await this.prismaService.plant.findUnique({
-        where: { id: plantId },
-        include: { plantNodes: true },
-      });
-
-      if (selectPlant) {
-        // 親ノードランダム決定
-        const nodeIndex: number = Math.floor(
-          Math.random() * selectPlant.plantNodes.length,
-        );
-        const parentNode: PlantNode = selectPlant.plantNodes[nodeIndex];
-
-        // Plant成長段階算出
-        const updatedNodeCnt = selectPlant.nodeCount + score.nodeCount;
-        const calcGrowthStage = (): GrowthStage => {
-          if (updatedNodeCnt <= 5) return GrowthStage.SPROUT;
-          else if (updatedNodeCnt <= 15) return GrowthStage.YOUNG;
-          else if (updatedNodeCnt <= 30) return GrowthStage.MATURE;
-          else return GrowthStage.BLOOM;
-        };
-        const growthStage = calcGrowthStage();
-        if (selectPlant.growthStage !== growthStage) {
-          // TODO: 成長段階が上がった場合の演出
-        }
-
-        const [resPlant, resNode, resTodo] =
-          await this.prismaService.$transaction([
-            // plant更新
-            this.prismaService.plant.update({
-              where: {
-                id: selectPlant.id,
-              },
-              data: {
-                nodeCount: { increment: score.nodeCount },
-                growthStage,
-              },
-            }),
-            // node生成
-            this.prismaService.plantNode.create({
-              data: {
-                hue: Math.max(80, 120 - parentNode.depth * 4),
-                size: Math.max(3, parentNode.size * this.random(0.65, 0.88)),
-                length: Math.max(5, parentNode.length * this.random(0.8, 1.1)),
-                depth: parentNode.depth + 1,
-                parentId: parentNode.id,
-                todoId: currentTodo.id,
-                plantId: selectPlant.id,
-              },
-            }),
-            // todo更新
-            this.prismaService.todo.update({
-              where: {
-                id: currentTodo.id,
-              },
-              data: {
-                score: score.rank,
-                isCompleted: true,
-                completedAt,
-              },
-            }),
-          ]);
-
-        resNodes.push(resNode);
-        return resNodes;
-      } else {
-        throw new NotFoundException('選択したPlantが見つかりません。');
-      }
+    if (!selectPlant) {
+      throw new NotFoundException('Plantが見つかりません。');
     }
+
+    const createNodes = this.generateNode(
+      score.nodeCount,
+      selectPlant,
+      currentTodo.id,
+    );
+
+    const growth = this.calcGrowthStage(selectPlant, score.nodeCount);
+
+    if (growth.isPromotion) {
+      // TODO: 成長段階昇格時の特殊演出
+    }
+
+    const [, resNodes] = await this.prismaService.$transaction([
+      this.prismaService.plant.update({
+        where: {
+          id: selectPlant.id,
+        },
+        data: {
+          nodeCount: { increment: score.nodeCount },
+          growthStage: growth.curStage,
+        },
+      }),
+      this.prismaService.plantNode.createManyAndReturn({
+        data: createNodes,
+      }),
+      this.prismaService.todo.update({
+        where: {
+          id: currentTodo.id,
+        },
+        data: {
+          score: score.rank,
+          isCompleted: true,
+          completedAt: completeTodo.completedAt,
+        },
+      }),
+    ]);
+
+    return resNodes;
   }
 }
