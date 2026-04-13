@@ -87,6 +87,16 @@ export class TodoService {
     selectPlant: PlantWithNode,
     todoId: string,
   ): CreatedNode[] {
+    const MIN_HUE = 80;
+    const BASE_HUE = 120;
+    const HUE_DECAY_PER_DEPTH = 4;
+    const MIN_SIZE = 3;
+    const MIN_SIZE_RATIO = 0.65;
+    const MAX_SIZE_RATIO = 0.88;
+    const MIN_LENGTH = 5;
+    const MIN_LENGTH_RATIO = 0.8;
+    const MAX_LENGTH_RATIO = 1.1;
+
     const createdNodes: CreatedNode[] = [];
 
     for (let i = 0; i < count; i++) {
@@ -101,9 +111,18 @@ export class TodoService {
 
       // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
       const childNode: CreatedNode = {
-        hue: Math.max(80, 120 - parentNode.depth * 4),
-        size: Math.max(3, parentNode.size * this.random(0.65, 0.88)),
-        length: Math.max(5, parentNode.length * this.random(0.8, 1.1)),
+        hue: Math.max(
+          MIN_HUE,
+          BASE_HUE - parentNode.depth * HUE_DECAY_PER_DEPTH,
+        ),
+        size: Math.max(
+          MIN_SIZE,
+          parentNode.size * this.random(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
+        ),
+        length: Math.max(
+          MIN_LENGTH,
+          parentNode.length * this.random(MIN_LENGTH_RATIO, MAX_LENGTH_RATIO),
+        ),
         depth: parentNode.depth + 1,
         parentId: parentNode.id,
         plantId: selectPlant.id,
