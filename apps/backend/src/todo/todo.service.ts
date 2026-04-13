@@ -20,6 +20,7 @@ import {
   PlantWithNode,
   Score,
 } from './types/todo.types';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 @Injectable()
 export class TodoService {
@@ -188,6 +189,7 @@ export class TodoService {
    * @returns {Todo} タイマーを起動したTodo
    */
   async startTimer(todoId: string, gardenId: string): Promise<Todo> {
+    // 他Todoのタイマー起動確認
     const activeTodo = await this.prismaService.todo.findFirst({
       where: {
         gardenId,
@@ -200,13 +202,22 @@ export class TodoService {
       throw new BadRequestException('他TODOのタイマーが作動しています。');
     }
 
-    return await this.prismaService.todo.update({
-      where: {
-        id: todoId,
-        startedAt: null,
-      },
-      data: { startedAt: new Date() },
-    });
+    try {
+      return await this.prismaService.todo.update({
+        where: {
+          id: todoId,
+          startedAt: null,
+        },
+        data: { startedAt: new Date() },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new BadRequestException('開始済のTODOです。');
+        }
+      }
+      throw e;
+    }
   }
 
   /**
