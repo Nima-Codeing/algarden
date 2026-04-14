@@ -1,10 +1,18 @@
+import { BrowserRouter, Routes, Route } from "react-router";
+import { HomePage } from "./pages/HomePage";
+import { SigninPage } from "./pages/SigninPage";
+import { SignupPage } from "./pages/SignupPage";
+
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen font-bold">
-      <p className="text-lg">Hello</p>
-      <p className="text-md">World</p>
-      <p className="text-sm">!!!!!</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/signin" element={<SigninPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+
+      </Routes>
+    </BrowserRouter>
   );
 }
 
