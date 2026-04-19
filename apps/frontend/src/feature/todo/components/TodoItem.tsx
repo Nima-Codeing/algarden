@@ -18,7 +18,7 @@ export const TodoItem = ({ title, targetDuration }: Props) => {
 
       {/* targetDuration */}
       <div className="m-auto">
-        <span>{targetDuration || "-"}</span>
+        <span>{targetDuration ? targetDuration / 60 : '-'}</span>
       </div>
 
       <div className="m-auto">
