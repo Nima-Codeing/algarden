@@ -49,7 +49,6 @@ export async function main() {
       },
       {
         title: '筋トレ',
-        targetDuration: 900,
         userId: devUser.id,
         gardenId: devGarden.id,
       },
