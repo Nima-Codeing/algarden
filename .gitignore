@@ -16,3 +16,6 @@ yarn-debug.log*
 .env
 .env.local
 .env.*.local
+
+# private docs
+docs/links.md
