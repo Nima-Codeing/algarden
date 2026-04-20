@@ -1,3 +1,4 @@
+import * as argon2 from 'argon2';
 import {
   GardenPeriod,
   PrismaClient,
@@ -15,6 +16,17 @@ const prisma = new PrismaClient({
   adapter,
 });
 
+async function hashPassword(password: string): Promise<string> {
+  const hash = await argon2.hash(password, {
+    type: argon2.argon2id,
+    memoryCost: 19456,
+    timeCost: 2,
+    parallelism: 1,
+  });
+
+  return hash;
+}
+
 // main
 export async function main() {
   await prisma.garden.deleteMany();
@@ -27,7 +39,7 @@ export async function main() {
     data: {
       name: 'dev',
       email: 'dev@algarden.com',
-      password: 'dev',
+      password: await hashPassword('dev'),
     },
   });
 
