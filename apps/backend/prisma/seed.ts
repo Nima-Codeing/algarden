@@ -4,7 +4,6 @@ import {
   SeedType,
 } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import * as bcrypt from 'bcrypt';
 
 // DB Access setting
 const adapter = new PrismaPg({
@@ -28,7 +27,7 @@ export async function main() {
     data: {
       name: 'dev',
       email: 'dev@algarden.com',
-      password: await bcrypt.hash('dev', 10),
+      password: 'dev',
     },
   });
 
