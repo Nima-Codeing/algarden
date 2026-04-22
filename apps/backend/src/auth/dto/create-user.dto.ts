@@ -1,13 +1,19 @@
 import {
   IsEmail,
+  IsNotEmpty,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
-  Matches,
-  IsNotEmpty,
 } from 'class-validator';
 
-export class SigninUserDto {
+export class CreateUserDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(4, { message: 'ユーザーネームは4文字以上にしてください。' })
+  @MaxLength(12, { message: 'ユーザーネームは12文字以下にしてください。' })
+  name: string;
+
   @IsNotEmpty()
   @IsEmail()
   email: string;

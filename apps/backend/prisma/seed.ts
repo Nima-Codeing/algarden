@@ -1,4 +1,4 @@
-import * as argon2 from 'argon2';
+import { hashPassword } from 'src/auth/hash-password';
 import {
   GardenPeriod,
   PrismaClient,
@@ -15,17 +15,6 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({
   adapter,
 });
-
-async function hashPassword(password: string): Promise<string> {
-  const hash = await argon2.hash(password, {
-    type: argon2.argon2id,
-    memoryCost: 19456,
-    timeCost: 2,
-    parallelism: 1,
-  });
-
-  return hash;
-}
 
 // main
 export async function main() {
