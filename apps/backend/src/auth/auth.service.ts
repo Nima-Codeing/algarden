@@ -15,7 +15,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signIn(signinUserDto: SigninUserDto): Promise<{ token: string }> {
+  async signIn(signinUserDto: SigninUserDto): Promise<string> {
     const { email, password } = signinUserDto;
 
     const user = await this.prismaService.user.findUnique({
@@ -29,10 +29,9 @@ export class AuthService {
         sub: user.id,
         username: user.name,
       };
-
       const token = this.jwtService.sign(payload);
 
-      return { token };
+      return token;
     }
 
     throw new BadRequestException('EmailまたはPasswordが違います。');
