@@ -17,8 +17,8 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   // test用
-  DEV_USER_ID: string = 'b6f4e7ef-e227-48f6-bb9e-4e3739721f47';
-  DEV_GARDEN_ID: string = '3be5dc99-3868-4623-96c0-d85cac3ecb56';
+  DEV_USER_ID: string = '17044d6a-c458-4622-ae3a-91a0716826ab';
+  DEV_GARDEN_ID: string = '38102e5b-ae28-4940-bc07-694c7c2e9c8e';
 
   @Get()
   async findByGardenId(): Promise<Todo[]> {
