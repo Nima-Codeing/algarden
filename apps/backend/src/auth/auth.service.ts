@@ -38,7 +38,7 @@ export class AuthService {
     throw new BadRequestException('EmailまたはPasswordが違います。');
   }
 
-  async CreateUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { name, email, password } = createUserDto;
     return await this.prismaService.user.create({
       data: {
