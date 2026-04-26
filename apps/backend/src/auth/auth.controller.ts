@@ -9,8 +9,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signin')
-  async signIn(@Body() signinUserDto: SigninUserDto): Promise<User> {
-    return await this.authService.Signin(signinUserDto);
+  async signIn(
+    @Body() signinUserDto: SigninUserDto,
+  ): Promise<{ token: string }> {
+    return await this.authService.signIn(signinUserDto);
   }
 
   @Post('signup')

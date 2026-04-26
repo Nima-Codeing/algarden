@@ -28,7 +28,7 @@ export async function main() {
     data: {
       name: 'dev',
       email: 'dev@gmail.com',
-      password: await hashPassword('Devlop999'),
+      password: await hashPassword('Devlop.999'),
     },
   });
 
