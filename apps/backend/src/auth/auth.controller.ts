@@ -1,20 +1,30 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SigninUserDto } from './dto/signin-user.dto';
 import { User } from 'generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  getMe(@Req() req: Request) {
+    return req.user;
+  }
 
   @Post('signin')
   @HttpCode(HttpStatus.OK)
