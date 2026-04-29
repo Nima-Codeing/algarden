@@ -3,6 +3,7 @@ import { HomePage } from "./pages/HomePage";
 import { SigninPage } from "./pages/SigninPage";
 import { SignupPage } from "./pages/SignupPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 function App() {
   return (
@@ -15,6 +16,8 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<HomePage />} />
         </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
 
       </Routes>
     </BrowserRouter>
