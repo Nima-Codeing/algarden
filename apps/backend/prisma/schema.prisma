@@ -19,7 +19,7 @@ enum GardenPeriod {
 }
 
 enum SeedType {
-  DFS
+  TENDRIL
 }
 
 enum GrowthStage {
@@ -82,9 +82,9 @@ model Todo {
 
 model Seed {
   id        String    @id @default(uuid()) @db.Uuid
-  px        Float
-  py        Float
-  seedType  SeedType
+  px        Float?
+  py        Float?
+  seedType  SeedType  @default(TENDRIL)
   isPlanted Boolean   @default(false)
   gardenId  String    @db.Uuid
   plantedAt DateTime? @db.Timestamptz(0)

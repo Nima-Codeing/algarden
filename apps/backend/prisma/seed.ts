@@ -1,9 +1,5 @@
 import { hashPassword } from 'src/auth/hash-password';
-import {
-  GardenPeriod,
-  PrismaClient,
-  SeedType,
-} from '../generated/prisma/client';
+import { GardenPeriod, PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 // DB Access setting
@@ -59,7 +55,6 @@ export async function main() {
     data: {
       px: 0,
       py: 0,
-      seedType: SeedType.DFS,
       gardenId: devGarden.id,
     },
   });
