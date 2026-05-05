@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { Garden } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -13,6 +14,41 @@ export class GardenService {
         userId,
         isActive: true,
       },
+    });
+  }
+
+  async reset(userId: string): Promise<Garden> {
+    // 現在のガーデンを閉じる
+    try {
+      await this.prismaService.garden.updateMany({
+        where: {
+          userId,
+          isActive: true,
+        },
+        data: {
+          isActive: false,
+          endedAt: new Date(),
+        },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new BadRequestException('育成中のガーデンがありません。');
+        }
+      }
+      throw e;
+    }
+
+    // 新しいガーデンを作成
+    return await this.prismaService.garden.create({
+      data: {
+        userId,
+        periodType: 'MONTHLY',
+        plantedSeeds: {
+          create: {},
+        },
+      },
+      include: { plantedSeeds: true },
     });
   }
 }
