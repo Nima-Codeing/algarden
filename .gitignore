@@ -18,4 +18,4 @@ yarn-debug.log*
 .env.*.local
 
 # private docs
-docs/links.md
+docs/*
