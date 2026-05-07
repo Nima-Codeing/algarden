@@ -9,9 +9,16 @@ export const ProtectedRoute = () => {
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        await fetch("http://localhost:3000/auth/me", {
+        const res = await fetch("http://localhost:3000/auth/me", {
           credentials: "include",
         });
+
+        // 404 ERROR
+        if (!res.ok) {
+          setStatus("ng");
+          return;
+        }
+
         setStatus("ok");
       } catch {
         setStatus("ng");
@@ -22,5 +29,6 @@ export const ProtectedRoute = () => {
 
   if (status === "loading") return null;
   if (status === "ng") return <Navigate to="/signin" />;
+
   return <Outlet />;
 };
