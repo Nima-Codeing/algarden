@@ -21,9 +21,9 @@ export const ProtectedRoute = () => {
           return;
         }
 
-        setStatus("ok");
         const user = await res.json();
         setUser(user);
+        setStatus("ok");
       } catch {
         setStatus("ng");
       }
