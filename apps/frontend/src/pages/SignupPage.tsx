@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { apiClient } from "../api/client";
 
 export const SignupPage = () => {
   const navigate = useNavigate();
@@ -10,17 +11,13 @@ export const SignupPage = () => {
 
   const handleSignUp = async () => {
     try {
-      const res = await fetch("http://localhost:3000/auth/signup", {
+      const res = await apiClient("auth/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           name: inputName,
           email: inputEmail,
           password: inputPassword,
         }),
-        credentials: "include",
       });
 
       if (!res.ok) return;

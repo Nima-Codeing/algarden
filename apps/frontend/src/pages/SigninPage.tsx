@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { apiClient } from "../api/client";
 
 export const SigninPage = () => {
   const navigate = useNavigate();
@@ -9,13 +10,9 @@ export const SigninPage = () => {
 
   const handleSignIn = async () => {
     try {
-      const signinRes = await fetch("http://localhost:3000/auth/signin", {
+      const signinRes = await apiClient("/auth/signin", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ email: email, password: password }),
-        credentials: "include",
       });
 
       if (!signinRes.ok) return;
