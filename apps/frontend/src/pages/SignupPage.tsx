@@ -11,7 +11,7 @@ export const SignupPage = () => {
 
   const handleSignUp = async () => {
     try {
-      const res = await apiClient("auth/signup", {
+      const res = await apiClient("/auth/signup", {
         method: "POST",
         body: JSON.stringify({
           name: inputName,
