@@ -1,3 +1,5 @@
+import { apiClient } from "../../../api/client";
+
 export type Todo = {
   id: string;
   title: string;
@@ -5,7 +7,7 @@ export type Todo = {
 };
 
 export const getTodos = async (): Promise<Todo[]> => {
-  const res = await fetch("http://localhost:3000/todos");
+  const res = await apiClient("/todos");
   if (!res.ok) throw new Error("Failed to fetch todos");
   return res.json();
 };
