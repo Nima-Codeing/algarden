@@ -6,32 +6,33 @@ import {
   Param,
   Patch,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { PlantNode, Todo } from 'generated/prisma/client';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+import { RequestUser } from 'src/auth/types/requsetUser.types';
 
 @Controller('todos')
+@UseGuards(AuthGuard('jwt'))
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
-  // test用
-  DEV_USER_ID: string = '17044d6a-c458-4622-ae3a-91a0716826ab';
-  DEV_GARDEN_ID: string = '38102e5b-ae28-4940-bc07-694c7c2e9c8e';
-
   @Get()
-  async findByGardenId(): Promise<Todo[]> {
-    return await this.todoService.findByGardenId(this.DEV_GARDEN_ID);
+  async findAll(@Req() req: Request & { user: RequestUser }): Promise<Todo[]> {
+    return await this.todoService.findActiveGardenTodos(req.user.id);
   }
 
   @Post()
-  async create(@Body() createTodoDto: CreateTodoDto): Promise<Todo> {
-    return await this.todoService.create(
-      createTodoDto,
-      this.DEV_USER_ID,
-      this.DEV_GARDEN_ID,
-    );
+  async create(
+    @Body() createTodoDto: CreateTodoDto,
+    @Req() req: Request & { user: RequestUser },
+  ): Promise<Todo> {
+    return await this.todoService.create(createTodoDto, req.user.id);
   }
 
   @Patch(':id')
@@ -49,8 +50,11 @@ export class TodoController {
 
   // タイマー開始 + 同時起動チェック
   @Patch(':id/start')
-  async startTimer(@Param('id') id: string): Promise<Todo> {
-    return await this.todoService.startTimer(id, this.DEV_GARDEN_ID);
+  async startTimer(
+    @Param('id') id: string,
+    @Req() req: Request & { user: RequestUser },
+  ): Promise<Todo> {
+    return await this.todoService.startTimer(id, req.user.id);
   }
 
   @Patch(':id/complete')
