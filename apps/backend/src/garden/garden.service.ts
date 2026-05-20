@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { Garden } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -8,13 +12,16 @@ export class GardenService {
   constructor(private readonly prismaService: PrismaService) {}
 
   // ユーザーの今月(Active)のGardenを取得する
-  async getActive(userId: string): Promise<Garden | null> {
-    return await this.prismaService.garden.findFirst({
+  async getActive(userId: string): Promise<Garden> {
+    const garden = await this.prismaService.garden.findFirst({
       where: {
         userId,
         isActive: true,
       },
     });
+    if (!garden)
+      throw new NotFoundException('アクティブなGardenが見つかりません。');
+    return garden;
   }
 
   async reset(userId: string): Promise<Garden> {

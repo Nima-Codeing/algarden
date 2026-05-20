@@ -12,7 +12,7 @@ export class GardenController {
   @UseGuards(AuthGuard('jwt'))
   async findByActive(
     @Req() req: Request & { user: RequestUser }, // TODO: create custom decorator
-  ): Promise<Garden | null> {
+  ): Promise<Garden> {
     const userId = req.user.id;
     return await this.gardenService.getActive(userId);
   }
