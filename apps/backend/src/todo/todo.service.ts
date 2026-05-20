@@ -21,10 +21,14 @@ import {
   Score,
 } from './types/todo.types';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { GardenService } from 'src/garden/garden.service';
 
 @Injectable()
 export class TodoService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly gardenService: GardenService,
+  ) {}
 
   /**
    * 指定された範囲内のランダムな小数を生成する
@@ -164,19 +168,23 @@ export class TodoService {
       isPromotion,
     };
   }
+
+  private async getActiveGardenId(userId: string): Promise<string> {
+    const garden = await this.gardenService.getActive(userId);
+    return garden.id;
+  }
+
   // -----------------------------------------------------------------------------
 
-  async findByGardenId(gardenId: string): Promise<Todo[]> {
+  async findActiveGardenTodos(userId: string): Promise<Todo[]> {
+    const gardenId = await this.getActiveGardenId(userId);
     return await this.prismaService.todo.findMany({
       where: { gardenId },
     });
   }
 
-  async create(
-    createTodoDto: CreateTodoDto,
-    userId: string,
-    gardenId: string,
-  ): Promise<Todo> {
+  async create(createTodoDto: CreateTodoDto, userId: string): Promise<Todo> {
+    const gardenId = await this.getActiveGardenId(userId);
     return await this.prismaService.todo.create({
       data: {
         ...createTodoDto,
@@ -204,10 +212,12 @@ export class TodoService {
    * 同一Garden内で同時に起動できるタイマーは1つのみ
    *
    * @param {string} todoId - タイマーを起動するTodoのid
-   * @param {string} gardenId - 指定Todoが属するGardenのid
    * @returns {Todo} タイマーを起動したTodo
    */
-  async startTimer(todoId: string, gardenId: string): Promise<Todo> {
+  async startTimer(todoId: string, userId: string): Promise<Todo> {
+    // 指定Todoが属するGardenIdの取得
+    const gardenId = await this.getActiveGardenId(userId);
+
     // 他Todoのタイマー起動確認
     const activeTodo = await this.prismaService.todo.findFirst({
       where: {
