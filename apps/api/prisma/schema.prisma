@@ -82,8 +82,8 @@ model Todo {
 
 model Seed {
   id        String    @id @default(uuid()) @db.Uuid
-  px        Float?
-  py        Float?
+  x         Float?
+  y         Float?
   seedType  SeedType  @default(TENDRIL)
   isPlanted Boolean   @default(false)
   gardenId  String    @db.Uuid

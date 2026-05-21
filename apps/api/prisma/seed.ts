@@ -53,8 +53,8 @@ export async function main() {
 
   const devSeed = await prisma.seed.create({
     data: {
-      px: 0,
-      py: 0,
+      x: 0,
+      y: 0,
       gardenId: devGarden.id,
     },
   });
