@@ -1,9 +1,8 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { SeedService } from './seed.service';
 import { Seed } from 'generated/prisma/client';
-import { Request } from 'express';
-import { RequestUser } from 'src/auth/types/requsetUser.types';
 import { AuthGuard } from '@nestjs/passport';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @Controller('seeds')
 @UseGuards(AuthGuard('jwt'))
@@ -11,9 +10,7 @@ export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
   @Get('active')
-  async findByActiveGarden(
-    @Req() req: Request & { user: RequestUser },
-  ): Promise<Seed[]> {
-    return await this.seedService.getSeedsByActiveGarden(req.user.id);
+  async findByActiveGarden(@CurrentUser('id') userId: string): Promise<Seed[]> {
+    return await this.seedService.getSeedsByActiveGarden(userId);
   }
 }
