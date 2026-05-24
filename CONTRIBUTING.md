@@ -17,14 +17,12 @@
 
 ### スコープ
 
-スコープ例：be/auth, fe/routes, be/prisma
-
-- be = バックエンド
-- fe = フロントエンド
+- api = バックエンド（apps/api）
+- web = フロントエンド（apps/web）
 
 ```
-feat(be/todo): add JWT guard to TodoController
-chore(be/auth): scaffold SeedModule, Service, Controller
+feat(api/todo): add JWT guard to TodoController
+chore(api/auth): scaffold SeedModule, Service, Controller
 ```
 
 ## NestJS 命名規則
@@ -97,8 +95,10 @@ src/
 形式：<Conventional Commits.プレフィックス>/<修正内容>
 
 ```
-feat/todo-crud
-fix/node-growth-bug
+feat/seed-api
+fix/cors-cookie
+docs/update-project-documentation
+refactor/rename-apps-dirs
 ```
 
 ## issue / PR
