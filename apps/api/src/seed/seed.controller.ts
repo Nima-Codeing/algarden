@@ -9,7 +9,7 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
-  @Get('active')
+  @Get()
   async findByActiveGarden(@CurrentUser('id') userId: string): Promise<Seed[]> {
     return await this.seedService.getSeedsByActiveGarden(userId);
   }
