@@ -23,6 +23,8 @@
 
 ---
 
+## Part 1: Git 運用
+
 ## Commit 粒度の原則
 
 ### 大原則
@@ -98,8 +100,6 @@ feat(api/seed): add SeedModule
 ```
 
 空行を挟んで本文（任意）：
-
-
 
 ```
 <type>(<scope>): <subject>
@@ -237,6 +237,8 @@ git push
 
 ---
 
+## Part 2: GitHub 運用
+
 ## ブランチ運用
 
 ### ブランチ戦略
@@ -295,7 +297,7 @@ refactor/web-todo-list
 ### ラベル
 
 Issue 作成時に `type` と `scope` のラベルを必ず付ける。
-- ラベル運用参照
+- Labels 運用参照
 
 ### Milestone
 
@@ -443,5 +445,11 @@ M1 / M2 / M3 は開発上の重要マイルストーンを示す。
 - Issue 作成時に `type` と `scope` を **原則各1つ** 付ける
 - PR にはラベルを付けない（Issue のみ）
 - 新しいラベルは追加しない（体系を増やさない）
+
+---
+
+## Part 3: コード規約
+
+> 追記予定。
 
 ---
