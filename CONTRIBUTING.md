@@ -398,3 +398,34 @@ Issue タイトルと同じフォーマットで書く。
 - 対応する Issue が自動 close されていることを確認する
 
 ---
+
+## Milestone 運用
+
+### 方針
+
+Milestone は **Week 単位**で管理する。
+各 Week の due date までに対応する Issue をクローズすることを目標とする。
+
+### 命名規則
+
+```
+Week <番号>          # 通常週
+Week <番号> (M1)     # Milestone達成週
+```
+
+M1 / M2 / M3 は開発上の重要マイルストーンを示す。
+
+| マーカー | 意味 |
+|----------|------|
+| M1 | backend v1 完成 |
+| M2 | コアループ貫通 |
+| M3 | AlGarden v1 完成 |
+
+### 運用ルール
+
+- Issue 作成時に対応する Week の Milestone を設定する
+- その週に着手・完了予定の Issue を該当 Milestone に紐付ける
+- 週をまたぐ場合は Milestone を移動する（Issue を閉じずに Milestone だけ変更）
+- PR は Milestone に紐付けない（Issue のみ）
+
+---
