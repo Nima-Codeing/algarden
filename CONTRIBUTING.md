@@ -284,113 +284,62 @@ refactor/web-todo-list
 
 ---
 
+## Issue 規約
 
+### 基本ルール
 
+- **1 Issue = 1 つの目的**（複数の作業を1つにまとめない）
+- **1 Issue = 2〜10 commit** を目安にする
+- Issue を先に立ててからブランチを切る
 
+### ラベル
 
-## コミットメッセージ規約（Conventional Commits）
+Issue 作成時に `type` と `scope` のラベルを必ず付ける。
 
-形式：<プレフィックス>(<スコープ>): <修正内容>
+**type：**
 
-### プレフィックス
+| ラベル | 用途 |
+|--------|------|
+| `type:feat` | 新機能の追加 |
+| `type:fix` | バグ修正 |
+| `type:docs` | ドキュメントのみの変更 |
+| `type:refactor` | 動作を変えないコードの改善 |
+| `type:test` | テストの追加・修正 |
+| `type:chore` | ビルド・設定・依存関係など |
 
-| プレフィックス | 用途 |
-|---|---|
-| `feat:` | 新機能 |
-| `fix:` | バグ修正 |
-| `docs:` | ドキュメントのみの変更 |
-| `refactor:` | 機能変更を伴わないコード整理 |
-| `test:` | テストの追加・修正 |
-| `chore:` | ビルド・設定ファイルの変更 |
+**scope：**
 
-### スコープ
+| ラベル | 対象 |
+|--------|------|
+| `scope:api` | `apps/api` 配下（Prisma含む） |
+| `scope:web` | `apps/web` 配下（ビジュアライズ含む） |
+| `scope:shared` | `packages/shared` 配下 |
+| `scope:infra` | CI/CD・Docker・デプロイ設定 |
+| `scope:contributing` | 本ドキュメント・テンプレート類 |
 
-- api = バックエンド（apps/api）
-- web = フロントエンド（apps/web）
+### Milestone
 
-```
-feat(api/todo): add JWT guard to TodoController
-chore(api/auth): scaffold SeedModule, Service, Controller
-```
+Issue 作成時に対応する Week の Milestone を設定する。
 
-## NestJS 命名規則
+### テンプレート
 
-### クラス名
+`.github/ISSUE_TEMPLATE/task.md` を使用する。
+「概要」「背景・目的」「作業内容」「完了条件」「関連」の5項目を埋める。
 
-PascalCase。ロール（役割）を suffix として付与する。
-
-| ロール | 例 |
-|---|---|
-| Controller | `SeedController`, `GardenController` |
-| Service | `SeedService`, `GardenService` |
-| Module | `SeedModule`, `GardenModule` |
-| DTO | `CreateSeedDto`, `UpdateSeedDto` |
-| Strategy | `JwtStrategy` |
-| Guard | `JwtAuthGuard` |
-| Type / Interface | `RequestUser`, `JwtPayload` |
-
-### URL
-
-小文字・kebab-case・複数形を基本とする。
+### タイトル
 
 ```
-GET  /seeds
-GET  /seeds/active
-POST /seeds/:id/plant
-GET  /gardens/active
-POST /gardens/reset
-GET  /plant-nodes
+<type>(<scope>): <概要>
 ```
 
-- リソース名は複数形（`seeds`, `plant-nodes`）
-- 複合語は kebab-case（`plant-nodes`, not `plantnodes`）
-- アクション系エンドポイントはリソース配下に動詞を置く（`/seeds/:id/plant`）
+Commit message の subject と同じフォーマットで書く。
 
-### ファイル名
-
-`<domain>.<role>.ts` の形式（kebab-case）。
+**例：**
 
 ```
-seed.controller.ts
-seed.service.ts
-seed.module.ts
-create-seed.dto.ts
-jwt.strategy.ts
-request-user.types.ts
+feat(api): implement plant growth algorithm
+docs(contributing): add branch workflow section
+fix(web): fix garden canvas pan/zoom on mobile
 ```
 
-- DTO は `create-seed.dto.ts` のように操作名を prefix に付ける
-- 型定義は `*.type.ts`
-
-### フォルダ名
-
-kebab-case・機能ドメイン単位でフォルダを切る。
-
-```
-src/
-├── auth/
-├── garden/
-├── seed/
-├── todo/
-├── plant/
-└── prisma/
-```
-
-1 ドメイン = 1 フォルダ。フォルダ内に controller / service / module / dto / types をまとめる。
-
-## ブランチ命名規則
-
-形式：<Conventional Commits.プレフィックス>/<修正内容>
-
-```
-feat/seed-api
-fix/cors-cookie
-docs/update-project-documentation
-refactor/rename-apps-dirs
-```
-
-## issue / PR
-
-issueタイトル：英語
-PR本文：日本語
-closes #○ でissue自動クローズ
+---
