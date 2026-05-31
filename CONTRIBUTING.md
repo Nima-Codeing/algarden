@@ -89,7 +89,74 @@ feat(api/seed): add SeedModule
 
 ---
 
+## Commit message の書き方
 
+### フォーマット
+
+```
+<type>(<scope>): <subject>
+```
+
+空行を挟んで本文（任意）：
+
+
+
+```
+<type>(<scope>): <subject>
+
+<body>
+```
+
+### type
+
+| type | 用途 |
+|------|------|
+| `feat` | 新機能の追加 |
+| `fix` | バグ修正 |
+| `docs` | ドキュメントのみの変更 |
+| `refactor` | 動作を変えないコードの改善 |
+| `test` | テストの追加・修正 |
+| `chore` | ビルド・設定・依存関係など |
+
+### scope
+
+ディレクトリ構造に対応させる。
+
+| scope | 対象 |
+|-------|------|
+| `api` | `apps/api` 配下（Prisma含む） |
+| `web` | `apps/web` 配下（ビジュアライズ含む） |
+| `shared` | `packages/shared` 配下 |
+| `infra` | CI/CD・Docker・デプロイ設定 |
+| `contributing` | 本ドキュメント・テンプレート類 |
+
+### subject
+
+- 英語・現在形・命令形で書く（`add`、`fix`、`update` など）
+- 先頭を大文字にしない
+- 末尾にピリオドをつけない
+- 50文字以内を目安にする
+
+### body（任意）
+
+- なぜこの変更をしたかを書く（what ではなく why）
+- `git log` で文脈が追えることを目的とする
+
+### 例
+
+```
+feat(api/auth): add @CurrentUser() decorator
+
+req.user への直接アクセスを避け、デコレータで明示的に
+ユーザー情報を取得できるようにする。
+Passport の request オブジェクト依存を1箇所に集約する目的。
+```
+
+```
+refactor(web): extract GardenCanvas into standalone component
+```
+
+---
 
 
 
