@@ -237,7 +237,52 @@ git push
 
 ---
 
+## ブランチ運用
 
+### ブランチ戦略
+
+`main` ブランチを常にデプロイ可能な状態に保つ。
+すべての変更は feature ブランチで行い、PR を通じて `main` にマージする。
+
+### 命名規則
+
+```
+<type>/<scope>-<description>
+```
+
+- `type` は Commit message の type と同じ（`feat` / `fix` / `docs` / `refactor` / `test` / `chore`）
+- `scope` はオプション。対象が明確な場合に付ける
+- `description` はケバブケース・英語
+
+**例：**
+
+```
+feat/api-plant-growth
+feat/web-garden-canvas
+fix/api-jwt-cookie
+docs/contributing-guide
+refactor/web-todo-list
+```
+
+### 運用ルール
+
+- **Issue を先に立ててからブランチを切る**
+- **1 Issue = 1 PR = 1 feature ブランチ**
+- ブランチは PR マージ後に削除する
+- `main` への直接 push は原則禁止
+
+### ライフサイクル
+
+```
+1. Issue を立てる
+2. Issue からブランチを切る（GitHub UI の "Create a branch" またはローカル）
+3. 実装・commit を積む
+4. PR を出す（closes #<Issue番号> を記載）
+5. セルフレビュー → マージ
+6. ブランチを削除する
+```
+
+---
 
 
 
