@@ -295,27 +295,7 @@ refactor/web-todo-list
 ### ラベル
 
 Issue 作成時に `type` と `scope` のラベルを必ず付ける。
-
-**type：**
-
-| ラベル | 用途 |
-|--------|------|
-| `type:feat` | 新機能の追加 |
-| `type:fix` | バグ修正 |
-| `type:docs` | ドキュメントのみの変更 |
-| `type:refactor` | 動作を変えないコードの改善 |
-| `type:test` | テストの追加・修正 |
-| `type:chore` | ビルド・設定・依存関係など |
-
-**scope：**
-
-| ラベル | 対象 |
-|--------|------|
-| `scope:api` | `apps/api` 配下（Prisma含む） |
-| `scope:web` | `apps/web` 配下（ビジュアライズ含む） |
-| `scope:shared` | `packages/shared` 配下 |
-| `scope:infra` | CI/CD・Docker・デプロイ設定 |
-| `scope:contributing` | 本ドキュメント・テンプレート類 |
+- ラベル運用参照
 
 ### Milestone
 
@@ -427,5 +407,41 @@ M1 / M2 / M3 は開発上の重要マイルストーンを示す。
 - その週に着手・完了予定の Issue を該当 Milestone に紐付ける
 - 週をまたぐ場合は Milestone を移動する（Issue を閉じずに Milestone だけ変更）
 - PR は Milestone に紐付けない（Issue のみ）
+
+---
+
+## Labels 運用
+
+### 体系
+
+ラベルは `type` と `scope` の2系統で構成する。
+デフォルトラベル（bug / enhancement など）は使用しない。
+
+### type
+
+| ラベル | 用途 |
+|--------|------|
+| `type:feat` | 新機能の追加 |
+| `type:fix` | バグ修正 |
+| `type:docs` | ドキュメントのみの変更 |
+| `type:refactor` | 動作を変えないコードの改善 |
+| `type:test` | テストの追加・修正 |
+| `type:chore` | ビルド・設定・依存関係など |
+
+### scope
+
+| ラベル | 対象 |
+|--------|------|
+| `scope:api` | `apps/api` 配下（Prisma含む） |
+| `scope:web` | `apps/web` 配下（ビジュアライズ含む） |
+| `scope:shared` | `packages/shared` 配下 |
+| `scope:infra` | CI/CD・Docker・デプロイ設定 |
+| `scope:contributing` | 本ドキュメント・テンプレート類 |
+
+### 運用ルール
+
+- Issue 作成時に `type` と `scope` を **原則各1つ** 付ける
+- PR にはラベルを付けない（Issue のみ）
+- 新しいラベルは追加しない（体系を増やさない）
 
 ---
