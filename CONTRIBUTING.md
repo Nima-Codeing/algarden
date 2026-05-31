@@ -343,3 +343,58 @@ fix(web): fix garden canvas pan/zoom on mobile
 ```
 
 ---
+
+## PR 規約
+
+### 基本ルール
+
+- **1 PR = 1 Issue**
+- PR description に `closes #<Issue番号>` を記載してマージ時に Issue を自動 close する
+- マージ前に必ずセルフレビューを行う
+
+### タイトル
+
+Issue タイトルと同じフォーマットで書く。
+
+```
+<type>(<scope>): <description>
+```
+
+### description
+
+`.github/pull_request_template.md` を使用する。
+「概要」「変更内容」「テスト」「レビューポイント」「関連」の5項目を埋める。
+`関連` には必ず `closes #<Issue番号>` を記載する。
+
+### セルフレビューチェックリスト
+
+マージ前に以下を確認する。
+
+**コード品質：**
+- [ ] 不要なコメント・console.log・デバッグコードが残っていない
+- [ ] 型定義が適切である（`any` の乱用がない）
+- [ ] 命名が CONTRIBUTING.md の規約に沿っている
+
+**動作確認：**
+- [ ] ローカルでビルドが通る
+- [ ] 変更箇所の動作を手動で確認した
+- [ ] 既存機能への影響がないことを確認した
+
+**履歴：**
+- [ ] commit 粒度が「Commit 粒度の原則」に沿っている
+- [ ] commit message が規約に沿っている
+- [ ] 不要な commit（wip・typo修正など）が `rebase -i` で整理されている
+
+### マージ方法
+
+**Squash merge は使わない。** commit 履歴をそのまま `main` に残す。
+
+> Squash merge は個々の commit が失われるため、`git log` で変更の経緯を追えなくなる。
+> commit 粒度を適切に保つことで、squash merge に頼らない履歴管理を実現する。
+
+### マージ後
+
+- feature ブランチを削除する
+- 対応する Issue が自動 close されていることを確認する
+
+---
