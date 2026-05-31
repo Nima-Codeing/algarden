@@ -23,6 +23,77 @@
 
 ---
 
+## Commit 粒度の原則
+
+### 大原則
+
+1 commit = **意味的にまとまる最小単位の変更**。
+ファイル数や行数ではなく「意味」で区切る。
+
+### 判定基準
+
+以下のいずれかに該当する場合、粒度が不適切である可能性が高い。
+
+**粒度が大きすぎるサイン:**
+- 1 commit を `git revert` すると、戻したくない変更まで戻ってしまう
+- commit に含まれる変更が、1 文で説明できない
+- commit message に「and」「かつ」「ついでに」が入る
+
+**粒度が小さすぎるサイン:**
+- 1つの機能追加を取り消すのに、複数 commit の revert が必要
+- 単一のクラス追加を Controller / Service / Module で別 commit に分割している
+- ファイル単位で機械的に分割されている
+
+> 1 つの意味的変更が複数ファイルにまたがるのは正常。
+例えば「新しいエンドポイントの追加」は Controller / Service / DTO / Module に同時変更が必要になる。
+**ファイル数ではなく「意味」で判断する**。
+
+### 良い例
+
+実際の commit から：
+
+```
+feat(api/auth): add @CurrentUser() decorator
+refactor(api/seed): replace @Req() with @CurrentUser()
+fix(api/seed): align GET /seeds endpoint with spec
+```
+
+各 commit が単一の目的を持ち、独立して revert 可能。
+
+### 悪い例
+
+```
+feat(api/seed): add seed endpoint and fix auth bug
+→ 「and」が入っている。2 つの目的が混在
+→ 改善: 2 commit に分割する
+```
+
+```
+feat(api/seed): add SeedController
+feat(api/seed): add SeedService
+feat(api/seed): add SeedModule
+   → 過剰分割。1 つの「Seed モジュール追加」を 3 commit に分けている
+   → 改善: feat(api/seed): scaffold Seed module でまとめる
+```
+
+### Commit 順序
+
+意味的な依存関係がある変更を 1 PR にまとめる場合、依存関係に沿った順序で commit を積むことを推奨する。
+
+```
+1. feat(api/auth): add @CurrentUser() decorator             ← 依存される側
+2. refactor(api/seed): replace @Req() with @CurrentUser()   ← 依存する側
+```
+
+これにより、各 commit 時点でビルド可能な状態が維持され、cherry-pick / revert が容易になる。
+
+---
+
+
+
+
+
+
 ## コミットメッセージ規約（Conventional Commits）
 
 形式：<プレフィックス>(<スコープ>): <修正内容>
