@@ -16,7 +16,7 @@
 
 ### 適用範囲
 
-本ドキュメントの規約は **[PR #XX](https://github.com/Nima-Codeing/algarden/issues/9) 以降** のすべての変更に適用される。
+本ドキュメントの規約は **[PR #15](https://github.com/Nima-Codeing/algarden/issues/9) 以降** のすべての変更に適用される。
 それ以前の commit / PR は当時の運用に従っており、本規約とは整合しない場合がある。
 
 > 過去 commit の rebase は、リモート push 済み commit の hash 変更によるリスクを避けるため意図的に行わない。
