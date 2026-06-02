@@ -5,11 +5,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { RequestUser } from 'src/auth/types/requsetUser.types';
 
 @Controller('garden')
+@UseGuards(AuthGuard('jwt'))
 export class GardenController {
   constructor(private readonly gardenService: GardenService) {}
 
   @Get('active')
-  @UseGuards(AuthGuard('jwt'))
   async findByActive(
     @Req() req: Request & { user: RequestUser }, // TODO: create custom decorator
   ): Promise<Garden> {
@@ -18,7 +18,6 @@ export class GardenController {
   }
 
   @Post('reset')
-  @UseGuards(AuthGuard('jwt'))
   async reset(
     @Req() req: Request & { user: RequestUser }, // TODO: create custom decorator
   ): Promise<Garden> {
