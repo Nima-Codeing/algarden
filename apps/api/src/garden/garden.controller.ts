@@ -1,28 +1,21 @@
-import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { GardenService } from './garden.service';
 import { Garden } from 'generated/prisma/client';
 import { AuthGuard } from '@nestjs/passport';
-import { RequestUser } from 'src/auth/types/requsetUser.types';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
-@Controller('garden')
+@Controller('gardens')
+@UseGuards(AuthGuard('jwt'))
 export class GardenController {
   constructor(private readonly gardenService: GardenService) {}
 
-  @Get('active')
-  @UseGuards(AuthGuard('jwt'))
-  async findByActive(
-    @Req() req: Request & { user: RequestUser }, // TODO: create custom decorator
-  ): Promise<Garden> {
-    const userId = req.user.id;
+  @Get()
+  async findByActive(@CurrentUser('id') userId: string): Promise<Garden> {
     return await this.gardenService.getActive(userId);
   }
 
   @Post('reset')
-  @UseGuards(AuthGuard('jwt'))
-  async reset(
-    @Req() req: Request & { user: RequestUser }, // TODO: create custom decorator
-  ): Promise<Garden> {
-    const userId = req.user.id;
+  async reset(@CurrentUser('id') userId: string): Promise<Garden> {
     return await this.gardenService.reset(userId);
   }
 }
