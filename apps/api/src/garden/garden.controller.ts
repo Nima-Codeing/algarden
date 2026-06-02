@@ -4,12 +4,12 @@ import { Garden } from 'generated/prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestUser } from 'src/auth/types/requsetUser.types';
 
-@Controller('garden')
+@Controller('gardens')
 @UseGuards(AuthGuard('jwt'))
 export class GardenController {
   constructor(private readonly gardenService: GardenService) {}
 
-  @Get('active')
+  @Get()
   async findByActive(
     @Req() req: Request & { user: RequestUser }, // TODO: create custom decorator
   ): Promise<Garden> {
