@@ -472,9 +472,8 @@ PascalCase。ロール（役割）を suffix として付与する。
 
 ```
 GET  /seeds
-GET  /seeds/active
 POST /seeds/:id/plant
-GET  /gardens/active
+GET  /gardens
 POST /gardens/reset
 GET  /plant-nodes
 ```
