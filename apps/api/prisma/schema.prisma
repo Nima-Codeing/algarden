@@ -44,13 +44,13 @@ model User {
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
   createdAt DateTime @default(now()) @db.Timestamptz(0)
-  todos     Todo[]   // 全期間のtodo
+  todos     Todo[] // 全期間のtodo
   gardens   Garden[]
 }
 
 model Garden {
   id           String       @id @default(uuid()) @db.Uuid
-  snapshotUrl  String?      // v2: スクリーンショット保存用
+  snapshotUrl  String? // v2: スクリーンショット保存用
   isActive     Boolean      @default(true)
   periodType   GardenPeriod
   userId       String       @db.Uuid
@@ -58,9 +58,9 @@ model Garden {
   endedAt      DateTime?    @db.Timestamptz(0) // 期間終了時に日付格納
   updatedAt    DateTime     @updatedAt @db.Timestamptz(0)
   createdAt    DateTime     @default(now()) @db.Timestamptz(0)
-  todos        Todo[]       // この期間に作ったTodoという概念
+  todos        Todo[] // この期間に作ったTodoという概念
   plantedSeeds Seed[]
-  plants       Plant[]      // Garden内の全ネットワークを保持
+  plants       Plant[] // Garden内の全ネットワークを保持
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -68,7 +68,7 @@ model Todo {
   id             String      @id @default(uuid()) @db.Uuid
   title          String      @db.VarChar(30)
   isCompleted    Boolean     @default(false)
-  targetDuration Int?        // 目標時間(秒)
+  targetDuration Int? // 目標時間(秒)
   score          TodoScore?
   userId         String      @db.Uuid
   gardenId       String      @db.Uuid
@@ -89,7 +89,7 @@ model Seed {
   gardenId  String    @db.Uuid
   plantedAt DateTime? @db.Timestamptz(0)
   createdAt DateTime  @default(now()) @db.Timestamptz(0)
-  plant     Plant?    // Seedを植えたらPlantが生成される
+  plant     Plant? // Seedを植えたらPlantが生成される
   garden    Garden    @relation(fields: [gardenId], references: [id], onDelete: Cascade)
 }
 
@@ -104,13 +104,14 @@ model Plant {
   plantNodes  PlantNode[]
   garden      Garden      @relation(fields: [gardenId], references: [id], onDelete: Cascade)
   seed        Seed        @relation(fields: [seedId], references: [id], onDelete: Cascade)
+  plantEdges  PlantEdge[]
 }
 
 model PlantNode {
   id        String      @id @default(uuid()) @db.Uuid
   hue       Float
   size      Float
-  length    Float       // 親ノードから自ノードまでの距離
+  length    Float // 親ノードから自ノードまでの距離
   depth     Int         @default(0)
   parentId  String?     @db.Uuid
   todoId    String?     @db.Uuid
@@ -121,4 +122,17 @@ model PlantNode {
   children  PlantNode[] @relation("ParentChildren")
   todo      Todo?       @relation(fields: [todoId], references: [id], onDelete: Cascade)
   plant     Plant       @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  edgesFrom PlantEdge[] @relation("EdgeFrom")
+  edgesTo   PlantEdge[] @relation("EdgeTo")
+}
+
+model PlantEdge {
+  id       String    @id @default(uuid()) @db.Uuid
+  plantId  String    @db.Uuid
+  plant    Plant     @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  fromId   String    @db.Uuid
+  from     PlantNode @relation("EdgeFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId     String    @db.Uuid
+  to       PlantNode @relation("EdgeTo", fields: [toId], references: [id], onDelete: Cascade)
+  createAt DateTime  @default(now()) @db.Timestamptz(0)
 }
