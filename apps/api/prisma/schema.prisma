@@ -116,8 +116,8 @@ model PlantNode {
   id                String        @id @default(uuid()) @db.Uuid
   hue               Float
   size              Float
-  angle             Float // 親ノードからの角度
-  length            Float // 親ノードから自ノードまでの距離
+  angle             Float? // 親ノードからの角度
+  length            Float? // 親ノードから自ノードまでの距離
   depth             Int           @default(0)
   mutationType      MutationType? // ノードが持つ変異遺伝子
   mutationProgress  Int           @default(0) // 変異設計図の進捗度
