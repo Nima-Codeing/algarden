@@ -113,22 +113,27 @@ model Plant {
 }
 
 model PlantNode {
-  id        String      @id @default(uuid()) @db.Uuid
-  hue       Float
-  size      Float
-  length    Float // 親ノードから自ノードまでの距離
-  depth     Int         @default(0)
-  parentId  String?     @db.Uuid
-  todoId    String?     @db.Uuid
-  plantId   String      @db.Uuid
-  createdAt DateTime    @default(now()) @db.Timestamptz(0)
+  id                String        @id @default(uuid()) @db.Uuid
+  hue               Float
+  size              Float
+  angle             Float // 親ノードからの角度
+  length            Float // 親ノードから自ノードまでの距離
+  depth             Int           @default(0)
+  parentId          String?       @db.Uuid
+  todoId            String?       @db.Uuid
+  plantId           String        @db.Uuid
+  createdAt         DateTime      @default(now()) @db.Timestamptz(0)
   // NoAction: PostgreSQLの循環的Cascade禁止のため。Plant削除時はplantIdのCascadeで全Node削除される
-  parent    PlantNode?  @relation("ParentChildren", fields: [parentId], references: [id], onDelete: NoAction)
-  children  PlantNode[] @relation("ParentChildren")
-  todo      Todo?       @relation(fields: [todoId], references: [id], onDelete: Cascade)
-  plant     Plant       @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  edgesFrom PlantEdge[] @relation("EdgeFrom")
-  edgesTo   PlantEdge[] @relation("EdgeTo")
+  parent            PlantNode?    @relation("ParentChildren", fields: [parentId], references: [id], onDelete: NoAction)
+  children          PlantNode[]   @relation("ParentChildren")
+  todo              Todo?         @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  plant             Plant         @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  edgesFrom         PlantEdge[]   @relation("EdgeFrom")
+  edgesTo           PlantEdge[]   @relation("EdgeTo")
+  mutationType      MutationType? // ノードが持つ変異遺伝子
+  mutationProgress  Int           @default(0) // 変異設計図の進捗度
+  mutationBlueprint Json?         @db.JsonB // 設計図のJSON
+  canSpawn          Boolean       @default(true)
 }
 
 model PlantEdge {
