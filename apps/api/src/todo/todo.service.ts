@@ -98,6 +98,7 @@ export class TodoService {
     const MIN_SIZE_RATIO = 0.65;
     const MAX_SIZE_RATIO = 0.88;
     const MIN_LENGTH = 5;
+    const MAX_LENGTH = 50;
     const MIN_LENGTH_RATIO = 0.8;
     const MAX_LENGTH_RATIO = 1.1;
 
@@ -113,6 +114,10 @@ export class TodoService {
         throw new BadRequestException('親ノードが見つかりません。');
       }
 
+      // ルートノードを親ノードとして生成する場合
+      const parentNodeLength =
+        parentNode.length === null ? MAX_LENGTH : parentNode.length;
+
       // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
       const childNode: CreatedNode = {
         hue: Math.max(
@@ -125,7 +130,7 @@ export class TodoService {
         ),
         length: Math.max(
           MIN_LENGTH,
-          parentNode.length * this.random(MIN_LENGTH_RATIO, MAX_LENGTH_RATIO),
+          parentNodeLength * this.random(MIN_LENGTH_RATIO, MAX_LENGTH_RATIO),
         ),
         depth: parentNode.depth + 1,
         parentId: parentNode.id,

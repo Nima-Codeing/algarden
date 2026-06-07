@@ -1,11 +1,13 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-import { Garden } from 'generated/prisma/client';
+import { Garden, Plant, PlantNode } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PlantSeedDto } from './dto/plant-seed.dto';
 
 @Injectable()
 export class GardenService {
@@ -57,5 +59,52 @@ export class GardenService {
       },
       include: { plantedSeeds: true },
     });
+  }
+
+  async plantSeed(
+    userId: string,
+    gardenId: string,
+    { seedId, x, y }: PlantSeedDto,
+  ): Promise<Plant & { plantNodes: PlantNode[] }> {
+    // オーナーシップ検証
+    const garden = await this.prismaService.garden.findFirst({
+      where: { id: gardenId, userId },
+    });
+
+    if (!garden) throw new ForbiddenException();
+
+    const newPlant = await this.prismaService.$transaction(async (tx) => {
+      const seed = await tx.seed.findUnique({ where: { id: seedId } });
+      if (!seed) throw new NotFoundException('種が見つかりません。');
+      if (seed.isPlanted)
+        throw new BadRequestException('この種はすでに植えられています。');
+
+      await tx.seed.update({
+        where: { id: seedId },
+        data: { x, y, isPlanted: true, plantedAt: new Date() },
+      });
+
+      const plant = await tx.plant.create({
+        data: { gardenId, seedId: seed.id },
+      });
+
+      // ルートノード生成
+      await tx.plantNode.create({
+        data: {
+          hue: 120.0,
+          size: 20.0,
+          depth: 0,
+          plantId: plant.id,
+        },
+      });
+
+      return await tx.plant.findFirst({
+        where: { id: plant.id },
+        include: { plantNodes: true },
+      });
+    });
+
+    if (!newPlant) throw new Error('cant spown new plant');
+    return newPlant;
   }
 }

@@ -45,8 +45,12 @@ export async function main() {
       },
       {
         title: '筋トレ',
+        isCompleted: true,
+        score: 'D',
         userId: devUser.id,
         gardenId: devGarden.id,
+        startedAt: new Date(),
+        completedAt: new Date(),
       },
     ],
   });
@@ -70,7 +74,9 @@ export async function main() {
     data: {
       hue: 120,
       size: 10,
+      depth: 0,
       length: 30,
+      todoId: devTodos.at(1)?.id,
       plantId: devPlant.id,
     },
   });

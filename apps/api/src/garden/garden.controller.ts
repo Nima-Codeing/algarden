@@ -1,8 +1,9 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GardenService } from './garden.service';
 import { Garden } from 'generated/prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { PlantSeedDto } from './dto/plant-seed.dto';
 
 @Controller('gardens')
 @UseGuards(AuthGuard('jwt'))
@@ -17,5 +18,14 @@ export class GardenController {
   @Post('reset')
   async reset(@CurrentUser('id') userId: string): Promise<Garden> {
     return await this.gardenService.reset(userId);
+  }
+
+  @Post(':id/plant')
+  async plant(
+    @CurrentUser('id') userId: string,
+    @Param('id') gardenId: string,
+    @Body() plantSeedDto: PlantSeedDto,
+  ) {
+    return await this.gardenService.plantSeed(userId, gardenId, plantSeedDto);
   }
 }
