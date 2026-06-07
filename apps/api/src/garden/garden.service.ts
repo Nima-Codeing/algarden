@@ -74,25 +74,15 @@ export class GardenService {
     if (!garden) throw new ForbiddenException();
 
     const newPlant = await this.prismaService.$transaction(async (tx) => {
-      const seed = await tx.seed
-        .update({
-          where: { id: seedId },
-          data: {
-            x,
-            y,
-            isPlanted: true,
-            plantedAt: new Date(),
-          },
-        })
-        .catch((e) => {
-          if (
-            e instanceof PrismaClientKnownRequestError &&
-            e.code === 'P2025'
-          ) {
-            throw new BadRequestException('この種はすでに植えられています。');
-          }
-          throw e;
-        });
+      const seed = await tx.seed.findUnique({ where: { id: seedId } });
+      if (!seed) throw new NotFoundException('種が見つかりません。');
+      if (seed.isPlanted)
+        throw new BadRequestException('この種はすでに植えられています。');
+
+      await tx.seed.update({
+        where: { id: seedId },
+        data: { x, y, isPlanted: true, plantedAt: new Date() },
+      });
 
       const plant = await tx.plant.create({
         data: { gardenId, seedId: seed.id },
