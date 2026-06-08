@@ -8,12 +8,16 @@ export interface PlantNodeData {
   id: string;
   hue: number;
   size: number;
-  angle: number;
-  length: number;
   depth: number;
+  angle: number | null;
+  length: number | null;
+  mutationType: MutationType | null;
+  mutationProgress: number;
+  mutationBlueprint: unknown | null;
+  canSpawn: boolean;
   parentId: string | null;
-  plantId: string;
   todoId: string | null;
+  plantId: string;
   createdAt: string;
 }
 
