@@ -2,6 +2,8 @@ export type GrowthStage = 'SPROUT' | 'YOUNG' | 'MATURE' | 'BLOOM';
 
 export type SeedType = 'TENDRIL';
 
+export type MutationType = 'OCTAHEDRON' | 'RADIAL';
+
 export interface PlantNodeData {
   id: string;
   hue: number;
