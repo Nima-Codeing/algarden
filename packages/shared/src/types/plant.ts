@@ -28,4 +28,13 @@ export interface PlantData {
   seedId: string;
   gardenId: string;
   plantNodes: PlantNodeData[];
+  plantEdges: PlantEdgeData[];
+}
+
+export interface PlantEdgeData {
+  id: string;
+  plantId: string;
+  fromId: string;
+  toId: string;
+  createdAt: string;
 }
