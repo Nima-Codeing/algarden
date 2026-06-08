@@ -38,7 +38,7 @@ enum TodoScore {
 }
 
 enum MutationType {
-  OCTAHEDGON // 八面体
+  OCTAHEDRON // 八面体
   RADIAL // 放射
 }
 
