@@ -137,12 +137,12 @@ model PlantNode {
 }
 
 model PlantEdge {
-  id       String    @id @default(uuid()) @db.Uuid
-  plantId  String    @db.Uuid
-  plant    Plant     @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  fromId   String    @db.Uuid
-  from     PlantNode @relation("EdgeFrom", fields: [fromId], references: [id], onDelete: Cascade)
-  toId     String    @db.Uuid
-  to       PlantNode @relation("EdgeTo", fields: [toId], references: [id], onDelete: Cascade)
-  createAt DateTime  @default(now()) @db.Timestamptz(0)
+  id        String    @id @default(uuid()) @db.Uuid
+  plantId   String    @db.Uuid
+  plant     Plant     @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  fromId    String    @db.Uuid
+  from      PlantNode @relation("EdgeFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      String    @db.Uuid
+  to        PlantNode @relation("EdgeTo", fields: [toId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @db.Timestamptz(0)
 }
