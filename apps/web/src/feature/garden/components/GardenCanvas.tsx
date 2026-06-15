@@ -53,7 +53,7 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
 
 export const GardenCanvas = () => {
   const LINECOLOR = "#ffffff";
-  const LIENSIZE = 1;
+  const LINESIZE = 1;
   const SATURATION = 80;
   const BRIGHTNESS = 65;
   const nodesData: PlantNodeData[] = mockPlant.plantNodes;
@@ -78,7 +78,7 @@ export const GardenCanvas = () => {
               x2={to?.x}
               y2={to?.y}
               stroke={LINECOLOR}
-              strokeWidth={LIENSIZE}
+              strokeWidth={LINESIZE}
             />
           );
         })}
