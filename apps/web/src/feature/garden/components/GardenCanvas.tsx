@@ -8,8 +8,20 @@ interface Coordinate {
   hue: number;
 }
 
+/**
+ * 角度をラジアンに変換する。
+ * 
+ * @param {number} angle - 変換する角度
+ * @returns {number} 変換後の角度（ラジアン）
+ */
 const convertRadian = (angle: number) => angle * (Math.PI / 180);
 
+/**
+ * 描画用にノード群の絶対座標を計算する。（極座標->絶対座標）
+ * 
+ * @param {PlantNodeData[]} nodes - 極座標のノード群（DB取得時）
+ * @returns {Map<string, Coordinate>} 絶対座標のノード群
+ */
 const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
   const coordMap = new Map<string, Coordinate>();
 
@@ -52,8 +64,6 @@ export const GardenCanvas = () => {
   const BRIGHTNESS = 65;
   const nodesData: PlantNodeData[] = mockPlant.plantNodes;
   const coordMap = calcCoord(nodesData);
-
-  console.log(coordMap);
 
   return (
     <svg
