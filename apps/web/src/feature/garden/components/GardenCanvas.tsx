@@ -9,16 +9,8 @@ interface Coordinate {
 }
 
 /**
- * 角度をラジアンに変換する。
- * 
- * @param {number} angle - 変換する角度
- * @returns {number} 変換後の角度（ラジアン）
- */
-const convertRadian = (angle: number) => angle * (Math.PI / 180);
-
-/**
  * 描画用にノード群の絶対座標を計算する。（極座標->絶対座標）
- * 
+ *
  * @param {PlantNodeData[]} nodes - 極座標のノード群（DB取得時）
  * @returns {Map<string, Coordinate>} 絶対座標のノード群
  */
@@ -49,8 +41,8 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
 
     if (node.length === null || node.angle === null) return;
     coordMap.set(node.id, {
-      x: parent.x + node.length * Math.cos(convertRadian(node.angle)),
-      y: parent.y + node.length * Math.sin(convertRadian(node.angle)),
+      x: parent.x + node.length * Math.cos(node.angle),
+      y: parent.y + node.length * Math.sin(node.angle),
       r: node.size / 2,
       hue: node.hue,
     });
@@ -60,6 +52,8 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
 };
 
 export const GardenCanvas = () => {
+  const LINECOLOR = "#ffffff";
+  const LIENSIZE = 1;
   const SATURATION = 80;
   const BRIGHTNESS = 65;
   const nodesData: PlantNodeData[] = mockPlant.plantNodes;
@@ -72,6 +66,22 @@ export const GardenCanvas = () => {
       height="400"
       viewBox="0 0 400 400"
     >
+      {nodesData.map((n, i) => {
+          if(n.parentId === null) return; // ルート除外
+          const from = coordMap.get(n.parentId);
+          const to = coordMap.get(n.id);
+          return (
+            <line
+              key={i}
+              x1={from?.x}
+              y1={from?.y}
+              x2={to?.x}
+              y2={to?.y}
+              stroke={LINECOLOR}
+              strokeWidth={LIENSIZE}
+            />
+          );
+        })}
       {Array.from(coordMap.entries()).map(([id, n]) => (
         <circle
           key={id}
