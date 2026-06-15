@@ -8,6 +8,8 @@ interface Coordinate {
   hue: number;
 }
 
+const convertRadian = (angle: number) => angle * (Math.PI / 180);
+
 const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
   const coordMap = new Map<string, Coordinate>();
 
@@ -35,8 +37,8 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
 
     if (node.length === null || node.angle === null) return;
     coordMap.set(node.id, {
-      x: parent.x + node.length * Math.cos(node.angle),
-      y: parent.y + node.length * Math.sin(node.angle),
+      x: parent.x + node.length * Math.cos(convertRadian(node.angle)),
+      y: parent.y + node.length * Math.sin(convertRadian(node.angle)),
       r: node.size / 2,
       hue: node.hue,
     });
