@@ -7,7 +7,14 @@ import { SeedModule } from './seed/seed.module';
 import { PlantModule } from './plant/plant.module';
 
 @Module({
-  imports: [PrismaModule, TodoModule, AuthModule, GardenModule, SeedModule, PlantModule],
+  imports: [
+    PrismaModule,
+    TodoModule,
+    AuthModule,
+    GardenModule,
+    SeedModule,
+    PlantModule,
+  ],
   controllers: [],
   providers: [],
 })
