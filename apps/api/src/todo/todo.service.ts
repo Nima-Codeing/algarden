@@ -137,13 +137,14 @@ export class TodoService {
    * Todoを完了し、スコアに応じたノードをPlantに追加する
    *
    * @param {string} todoId - 完了させるTodoのid
-   * @param {string} plantId - ノードを追加するPlantのid
+   * @param {string} userId - 完了したTodoの所有ユーザーのid
    * @returns {PlantNode[]} 生成・保存されたノード配列
    */
-  async complete(todoId: string, plantId: string): Promise<PlantNode[]> {
+  async complete(todoId: string, userId: string): Promise<PlantNode[]> {
     const currentTodo = await this.prismaService.todo.findFirst({
       where: {
         id: todoId,
+        userId,
         startedAt: { not: null },
         completedAt: null,
       },
@@ -161,8 +162,9 @@ export class TodoService {
 
     const score = this.calcScore(completeTodo);
 
-    const selectPlant = await this.prismaService.plant.findUnique({
-      where: { id: plantId },
+    const gardenId = await this.getActiveGardenId(userId);
+    const selectPlant = await this.prismaService.plant.findFirst({
+      where: { gardenId },
       include: { plantNodes: true },
     });
 

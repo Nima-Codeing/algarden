@@ -60,8 +60,8 @@ export class TodoController {
   @Patch(':id/complete')
   async complete(
     @Param('id') id: string,
-    @Body('plantId') plantId: string,
+    @Req() req: Request & { user: RequestUser },
   ): Promise<PlantNode[]> {
-    return await this.todoService.complete(id, plantId);
+    return await this.todoService.complete(id, req.user.id);
   }
 }
