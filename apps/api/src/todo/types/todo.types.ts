@@ -1,4 +1,4 @@
-import { GrowthStage, TodoScore } from 'generated/prisma/client';
+import { TodoScore } from 'generated/prisma/client';
 
 export type Score = {
   rank?: TodoScore;
@@ -9,9 +9,4 @@ export type CompleteTodo = {
   startedAt: Date;
   completedAt: Date;
   targetDuration: number | null;
-};
-
-export type GrowthStageResult = {
-  curStage: GrowthStage;
-  isPromotion: boolean;
 };

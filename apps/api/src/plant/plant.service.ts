@@ -1,6 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PlantNode } from 'generated/prisma/client';
-import { CreatedNode, PlantWithNode } from './types/plant.types';
+import { GrowthStage, Plant, PlantNode } from 'generated/prisma/client';
+import {
+  CreatedNode,
+  GrowthStageResult,
+  PlantWithNode,
+} from './types/plant.types';
 
 @Injectable()
 export class PlantService {
@@ -83,5 +87,32 @@ export class PlantService {
     }
 
     return createdNodes;
+  }
+
+  /**
+   * 追加ノード数をもとにPlantの現在の成長段階と昇格有無を算出する
+   *
+   * @param {Plant} selectPlant - 対象Plant
+   * @param {number} addNodeCnt - 追加するノード数
+   * @returns {GrowthStageResult} 現在の成長段階と昇格フラグ
+   */
+  calcGrowthStage(selectPlant: Plant, addNodeCnt: number): GrowthStageResult {
+    const curNodeCnt = selectPlant.nodeCount + addNodeCnt;
+
+    const curStage: GrowthStage =
+      curNodeCnt <= 5
+        ? GrowthStage.SPROUT
+        : curNodeCnt <= 15
+          ? GrowthStage.YOUNG
+          : curNodeCnt <= 30
+            ? GrowthStage.MATURE
+            : GrowthStage.BLOOM;
+
+    const isPromotion: boolean = selectPlant.growthStage !== curStage;
+
+    return {
+      curStage,
+      isPromotion,
+    };
   }
 }

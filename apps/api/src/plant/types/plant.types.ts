@@ -1,4 +1,4 @@
-import { Prisma } from 'generated/prisma/client';
+import { GrowthStage, Prisma } from 'generated/prisma/client';
 
 export type CreatedNode = {
   hue: number;
@@ -13,3 +13,8 @@ export type CreatedNode = {
 export type PlantWithNode = Prisma.PlantGetPayload<{
   include: { plantNodes: true };
 }>;
+
+export type GrowthStageResult = {
+  curStage: GrowthStage;
+  isPromotion: boolean;
+};

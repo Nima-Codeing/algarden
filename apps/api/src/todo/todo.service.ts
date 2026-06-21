@@ -3,17 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  GrowthStage,
-  Plant,
-  PlantNode,
-  Todo,
-  TodoScore,
-} from 'generated/prisma/client';
+import { PlantNode, Todo, TodoScore } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
-import { CompleteTodo, GrowthStageResult, Score } from './types/todo.types';
+import { CompleteTodo, Score } from './types/todo.types';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { GardenService } from 'src/garden/garden.service';
 import { PlantService } from 'src/plant/plant.service';
@@ -57,36 +51,6 @@ export class TodoService {
     } else {
       return { rank: TodoScore.D, nodeCount: 1 };
     }
-  }
-
-  /**
-   * 追加ノード数をもとにPlantの現在の成長段階と昇格有無を算出する
-   *
-   * @param {Plant} selectPlant - 対象Plant
-   * @param {number} addNodeCnt - 追加するノード数
-   * @returns {GrowthStageResult} 現在の成長段階と昇格フラグ
-   */
-  private calcGrowthStage(
-    selectPlant: Plant,
-    addNodeCnt: number,
-  ): GrowthStageResult {
-    const curNodeCnt = selectPlant.nodeCount + addNodeCnt;
-
-    const curStage: GrowthStage =
-      curNodeCnt <= 5
-        ? GrowthStage.SPROUT
-        : curNodeCnt <= 15
-          ? GrowthStage.YOUNG
-          : curNodeCnt <= 30
-            ? GrowthStage.MATURE
-            : GrowthStage.BLOOM;
-
-    const isPromotion: boolean = selectPlant.growthStage !== curStage;
-
-    return {
-      curStage,
-      isPromotion,
-    };
   }
 
   private async getActiveGardenId(userId: string): Promise<string> {
@@ -212,7 +176,10 @@ export class TodoService {
       currentTodo.id,
     );
 
-    const growth = this.calcGrowthStage(selectPlant, score.nodeCount);
+    const growth = this.plantService.calcGrowthStage(
+      selectPlant,
+      score.nodeCount,
+    );
 
     if (growth.isPromotion) {
       // TODO: 成長段階昇格時の特殊演出
