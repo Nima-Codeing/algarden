@@ -46,6 +46,7 @@ export class PlantService {
     const MAX_LENGTH = 50;
     const MIN_LENGTH_RATIO = 0.8;
     const MAX_LENGTH_RATIO = 1.1;
+    const FIFTEEN_DEGREES = Math.PI / 12;
 
     const createdNodes: CreatedNode[] = [];
 
@@ -65,6 +66,7 @@ export class PlantService {
 
       // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
       const childNode: CreatedNode = {
+        id: crypto.randomUUID(),
         hue: Math.max(
           MIN_HUE,
           BASE_HUE - parentNode.depth * HUE_DECAY_PER_DEPTH,
@@ -73,11 +75,19 @@ export class PlantService {
           MIN_SIZE,
           parentNode.size * this.random(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
         ),
+        depth: parentNode.depth + 1,
+        angle:
+          // 親ノードがルートノードの場合
+          parentNode.angle === null
+            ? this.random(0, Math.PI * 2) // 全方位対象
+            : this.random(
+                parentNode.angle - FIFTEEN_DEGREES,
+                parentNode.angle + FIFTEEN_DEGREES,
+              ), // 親ノードの角度から ±15°
         length: Math.max(
           MIN_LENGTH,
           parentNodeLength * this.random(MIN_LENGTH_RATIO, MAX_LENGTH_RATIO),
         ),
-        depth: parentNode.depth + 1,
         parentId: parentNode.id,
         plantId: selectPlant.id,
         todoId,

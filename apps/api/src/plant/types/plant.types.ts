@@ -1,10 +1,12 @@
 import { GrowthStage, Prisma } from 'generated/prisma/client';
 
 export type CreatedNode = {
+  id: string;
   hue: number;
   size: number;
-  length: number;
   depth: number;
+  angle: number;
+  length: number;
   parentId: string;
   todoId: string;
   plantId: string;
