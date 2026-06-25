@@ -129,8 +129,15 @@ export class PlantService {
     };
   }
 
-  grow(plantId: string, generateCount: number) {
+  async grow(plantId: string, generateCount: number) {
+    const MAX_CHILDREN = 4;
+
     // 子ノード紐付け可能なノード群を取得
+    let candidates = await this.prismaService.plantNode.findMany({
+      where: { canSpawn: true, plantId },
+      include: { children: true },
+    });
+    candidates = candidates.filter((c) => c.children.length < MAX_CHILDREN);
 
     // 指定個数分ノードを生成
     for (let i = 0; i < generateCount; i++) {
