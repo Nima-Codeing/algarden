@@ -5,9 +5,12 @@ import {
   GrowthStageResult,
   PlantWithNode,
 } from './types/plant.types';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PlantService {
+  constructor(private readonly prismaService: PrismaService) {}
+
   /**
    * 指定された範囲内のランダムな小数を生成する
    *
@@ -124,5 +127,17 @@ export class PlantService {
       curStage,
       isPromotion,
     };
+  }
+
+  grow(plantId: string, generateCount: number) {
+    // 子ノード紐付け可能なノード群を取得
+
+    // 指定個数分ノードを生成
+    for (let i = 0; i < generateCount; i++) {
+      // 親ノード決定
+      // 子ノード生成
+    }
+
+    // DB反映
   }
 }
