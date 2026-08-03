@@ -6,6 +6,8 @@ import {
   PlantWithNode,
 } from './types/plant.types';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PlantNodeGetPayload } from 'generated/prisma/models';
+import { PlantEdge } from 'generated/prisma/browser';
 
 @Injectable()
 export class PlantService {
@@ -24,6 +26,20 @@ export class PlantService {
       throw new Error('最小値は最大値以下である必要があります');
     }
     return Math.random() * (max - min) + min;
+  }
+
+  /**
+   * 指定された確率に基づいて、ランダムに真偽値（true / false）を返す
+   *
+   * @param {number} prob 判定がtrueになる確率（0.0 以上 1.0 以下の数値）
+   * @returns {boolean} 確率を満たした場合はtrue、そうでない場合はfalse
+   *
+   * @example
+   * // 30% の確率で true を返す
+   * const isSuccess = this.withChance(0.3);
+   */
+  private withChance(prob: number): boolean {
+    return Math.random() < prob;
   }
 
   /**
@@ -129,22 +145,73 @@ export class PlantService {
     };
   }
 
+  /**
+   * 新規ノードを生成する（通常成長ルート）
+   *
+   * @param {string} plantId - 生成対象plant
+   * @param {number} generateCount - 新規ノード生成個数
+   */
   async grow(plantId: string, generateCount: number) {
+    const P_RANDOM = 0.2; // 親ノード決定方式「ランダム選択」になる確率（外れた場合は「高さ優先選択」）
+    const P_CLUSTER = 0.5; // 延焼モードに入る確率
+    const P_BURN = 0.3; // 各隣接ノードに延焼する確率
     const MAX_CHILDREN = 4;
 
-    // 子ノード紐付け可能なノード群を取得
-    let candidates = await this.prismaService.plantNode.findMany({
-      where: { canSpawn: true, plantId },
-      include: { children: true },
-    });
-    candidates = candidates.filter((c) => c.children.length < MAX_CHILDREN);
+    // 対象plantの全ノード取得
+    const allNodes: NodesWithChildren[] =
+      await this.prismaService.plantNode.findMany({
+        where: { plantId },
+        include: { children: true },
+      });
 
-    // 指定個数分ノードを生成
-    for (let i = 0; i < generateCount; i++) {
-      // 親ノード決定
-      // 子ノード生成
+    // 葉からの高さを計算
+    const heights: Map<string, number> = this.calcHeights(allNodes);
+
+    // 親ノード候補
+    const candidates: NodesWithChildren[] = allNodes.filter(
+      (n) => n.canSpawn && n.children.length < MAX_CHILDREN,
+    );
+
+    // 親ノード決定方式の判別
+    const newNode: PlantNode = this.withChance(P_RANDOM)
+      ? null /* ランダム選択ルート(nullは仮) */
+      : null; /* 葉からの高さ優先選択ルート(nullは仮) */
+
+    // 延焼判別
+    const edges = this.withChance(P_CLUSTER)
+      ? null /* 延焼する場合(nullは仮) */
+      : null; /* 延焼しない場合(nullは仮) */
+
+    // DB反映(newNode + edges)
+  }
+
+  /**
+   * 葉からの高さを計算する
+   *
+   * @param {NodesWithChildren[]} nodes - 計算対象ノード群
+   * @returns {Map<string, number>} - key:ノードID value:葉からの高さ
+   */
+  private calcHeights(nodes: NodesWithChildren[]): Map<string, number> {
+    // depth降順
+    const sorted = nodes.sort((a, b) => b.depth - a.depth);
+    // 未処理の子の数を計算
+    const remaining = new Map<string, number>();
+    for (const n of sorted) remaining.set(n.id, 0);
+
+    for (const cur of sorted) {
+      let maxHei = 0;
+      for (const chi of cur.children) {
+        maxHei =
+          maxHei > (remaining.get(chi.id) ?? 0) + 1
+            ? maxHei
+            : (remaining.get(chi.id) ?? 0) + 1;
+      }
+      remaining.set(cur.id, maxHei);
     }
-
-    // DB反映
+    return remaining;
   }
 }
+
+export type NodesWithChildren = PlantNodeGetPayload<{
+  include: { children: true };
+}>;
