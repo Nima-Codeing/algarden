@@ -37,11 +37,6 @@ enum TodoScore {
   D
 }
 
-enum MutationType {
-  OCTAHEDRON // 八面体
-  RADIAL // 放射
-}
-
 // ========== Model ==========
 model User {
   id        String   @id @default(uuid()) @db.Uuid
@@ -54,19 +49,19 @@ model User {
 }
 
 model Garden {
-  id           String       @id @default(uuid()) @db.Uuid
+  id           String    @id @default(uuid()) @db.Uuid
   snapshotUrl  String? // v2: スクリーンショット保存用
-  isActive     Boolean      @default(true)
+  isActive     Boolean   @default(true)
   periodType   GardenPeriod
   todos        Todo[] // この期間に作ったTodoという概念
   plants       Plant[] // Garden内の全ネットワークを保持
   plantedSeeds Seed[]
-  userId       String       @db.Uuid
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  startedAt    DateTime     @default(now()) @db.Timestamptz(0)
-  endedAt      DateTime?    @db.Timestamptz(0) // 期間終了時に日付格納
-  updatedAt    DateTime     @updatedAt @db.Timestamptz(0)
-  createdAt    DateTime     @default(now()) @db.Timestamptz(0)
+  userId       String    @db.Uuid
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt    DateTime  @default(now()) @db.Timestamptz(0)
+  endedAt      DateTime? @db.Timestamptz(0) // 期間終了時に日付格納
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(0)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(0)
 }
 
 model Todo {
@@ -113,27 +108,23 @@ model Plant {
 }
 
 model PlantNode {
-  id                String        @id @default(uuid()) @db.Uuid
-  hue               Float
-  size              Float
-  depth             Int
-  angle             Float? // 親ノードからの角度
-  length            Float? // 親ノードから自ノードまでの距離
-  mutationType      MutationType? // ノードが持つ変異遺伝子
-  mutationProgress  Int           @default(0) // 変異設計図の進捗度
-  mutationBlueprint Json?         @db.JsonB // 設計図のJSON
-  canSpawn          Boolean       @default(true)
-  children          PlantNode[]   @relation("ParentChildren")
-  edgesFrom         PlantEdge[]   @relation("EdgeFrom")
-  edgesTo           PlantEdge[]   @relation("EdgeTo")
-  parentId          String?       @db.Uuid
+  id        String      @id @default(uuid()) @db.Uuid
+  hue       Float
+  size      Float
+  depth     Int
+  angle     Float? // 親ノードからの角度
+  length    Float? // 親ノードから自ノードまでの距離Ï
+  children  PlantNode[] @relation("ParentChildren")
+  edgesFrom PlantEdge[] @relation("EdgeFrom")
+  edgesTo   PlantEdge[] @relation("EdgeTo")
+  parentId  String?     @db.Uuid
   // NoAction: PostgreSQLの循環的Cascade禁止のため。Plant削除時はplantIdのCascadeで全Node削除される
-  parent            PlantNode?    @relation("ParentChildren", fields: [parentId], references: [id], onDelete: NoAction)
-  todoId            String?       @db.Uuid
-  todo              Todo?         @relation(fields: [todoId], references: [id], onDelete: Cascade)
-  plantId           String        @db.Uuid
-  plant             Plant         @relation(fields: [plantId], references: [id], onDelete: Cascade)
-  createdAt         DateTime      @default(now()) @db.Timestamptz(0)
+  parent    PlantNode?  @relation("ParentChildren", fields: [parentId], references: [id], onDelete: NoAction)
+  todoId    String?     @db.Uuid
+  todo      Todo?       @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  plantId   String      @db.Uuid
+  plant     Plant       @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now()) @db.Timestamptz(0)
 }
 
 model PlantEdge {
