@@ -14,6 +14,12 @@ export type PlantWithNode = Prisma.PlantGetPayload<{
   include: { plantNodes: true };
 }>;
 
+export type NodeWithChildIds = {
+  id: string;
+  depth: number;
+  children: { id: string }[];
+};
+
 export type GrowthStageResult = {
   curStage: GrowthStage;
   isPromotion: boolean;

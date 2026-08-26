@@ -3,6 +3,7 @@ import { GrowthStage, Plant, PlantNode } from 'generated/prisma/client';
 import {
   CreatedNode,
   GrowthStageResult,
+  NodeWithChildIds,
   PlantWithNode,
 } from './types/plant.types';
 
@@ -21,6 +22,20 @@ export class PlantService {
       throw new Error('最小値は最大値以下である必要があります');
     }
     return Math.random() * (max - min) + min;
+  }
+
+  /**
+   * 指定された確率に基づいて、ランダムに真偽値（true / false）を返す
+   *
+   * @param {number} prob 判定がtrueになる確率（0.0 以上 1.0 以下の数値）
+   * @returns {boolean} 確率を満たした場合はtrue、そうでない場合はfalse
+   *
+   * @example
+   * // 30% の確率で true を返す
+   * const isSuccess = this.withChance(0.3);
+   */
+  private withChance(prob: number): boolean {
+    return Math.random() < prob;
   }
 
   /**
@@ -114,5 +129,37 @@ export class PlantService {
       curStage,
       isPromotion,
     };
+  }
+
+  /**
+   * 渡されたノード配列内の全ノードの葉からの高さを計算する
+   *
+   * @param {NodeWithChildIds[]} nodes - 成長対象のPlant内全ノード群
+   * @returns {Map<string, number>} - key:ノードID value:葉からの高さ
+   */
+  calcHeights(nodes: NodeWithChildIds[]): Map<string, number> {
+    // depth降順
+    const sorted = [...nodes].sort((a, b) => b.depth - a.depth);
+
+    const nodeIdToHeight = new Map<string, number>(); // 高さ格納用
+
+    for (const p of sorted) {
+      let maxHeight = 0;
+
+      for (const c of p.children) {
+        /* [子ノード内の最大高さ + 1]として高さを設定 */
+        const childHeight = nodeIdToHeight.get(c.id);
+        if (childHeight === undefined) {
+          // DBの親子関係が崩壊している場合
+          throw new Error(`子ノードの高さが未計算です: ${c.id}`);
+        }
+
+        maxHeight = Math.max(maxHeight, childHeight + 1);
+      }
+
+      nodeIdToHeight.set(p.id, maxHeight);
+    }
+
+    return nodeIdToHeight;
   }
 }
