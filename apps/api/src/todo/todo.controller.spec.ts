@@ -8,7 +8,7 @@ describe('TodoController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TodoController],
-      providers: [TodoService],
+      providers: [{ provide: TodoService, useValue: {} }],
     }).compile();
 
     controller = module.get<TodoController>(TodoController);
