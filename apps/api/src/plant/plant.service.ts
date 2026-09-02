@@ -57,10 +57,6 @@ export class PlantService {
     const MIN_SIZE = 3;
     const MIN_SIZE_RATIO = 0.65;
     const MAX_SIZE_RATIO = 0.88;
-    const MIN_LENGTH = 5;
-    const MAX_LENGTH = 50;
-    const MIN_LENGTH_RATIO = 0.8;
-    const MAX_LENGTH_RATIO = 1.1;
 
     const createdNodes: CreatedNode[] = [];
 
@@ -74,24 +70,22 @@ export class PlantService {
         throw new BadRequestException('親ノードが見つかりません。');
       }
 
-      // ルートノードを親ノードとして生成する場合
-      const parentNodeLength =
-        parentNode.length === null ? MAX_LENGTH : parentNode.length;
-
+      const hue = Math.max(
+        MIN_HUE,
+        BASE_HUE - parentNode.depth * HUE_DECAY_PER_DEPTH,
+      );
+      const size = Math.max(
+        MIN_SIZE,
+        parentNode.size * this.random(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
+      );
+      const angle = this.random(0, Math.PI * 2);
+      const dist = this.random(size + 10, size + 20);
       // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
       const childNode: CreatedNode = {
-        hue: Math.max(
-          MIN_HUE,
-          BASE_HUE - parentNode.depth * HUE_DECAY_PER_DEPTH,
-        ),
-        size: Math.max(
-          MIN_SIZE,
-          parentNode.size * this.random(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
-        ),
-        length: Math.max(
-          MIN_LENGTH,
-          parentNodeLength * this.random(MIN_LENGTH_RATIO, MAX_LENGTH_RATIO),
-        ),
+        x: parentNode.x + dist * Math.cos(angle),
+        y: parentNode.y + dist * Math.sin(angle),
+        hue: hue,
+        size: size,
         depth: parentNode.depth + 1,
         parentId: parentNode.id,
         plantId: selectPlant.id,

@@ -9,40 +9,31 @@ interface Coordinate {
 }
 
 /**
- * 描画用にノード群の絶対座標を計算する。（極座標->絶対座標）
+ * Plant内ローカル座標を描画用のキャンバス座標へ平行移動する。
  *
- * @param {PlantNodeData[]} nodes - 極座標のノード群（DB取得時）
- * @returns {Map<string, Coordinate>} 絶対座標のノード群
+ * PlantNode.x/y はルートノードを原点とするPlant内の相対座標。
+ * 描画時にPlantの配置位置を加算して絶対座標にする。
+ * ORIGIN は暫定値で、将来はSeedのx/yに置き換わる。
+ *
+ * @param {PlantNodeData[]} nodes - Plant内ローカル座標のノード群
+ * @returns {Map<string, Coordinate>} キャンバス座標のノード群
  */
 const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
+  const ORIGIN_X = 200;
+  const ORIGIN_Y = 200;
   const coordMap = new Map<string, Coordinate>();
 
-  // ルートノードの計算
+  // ルートノードの存在確認（データ破損検知）
   const root = nodes.find((r) => r.parentId === null);
   if (!root)
     throw new Error(
       "ルートノードが見つかりませんでした。データが破損している可能性があります。",
     );
-  coordMap.set(root.id, {
-    x: 200,
-    y: 200,
-    r: root.size / 2,
-    hue: root.hue,
-  });
 
-  // ルートノード以外の計算
-  const sorted = [...nodes].sort((a, b) => a.depth - b.depth);
-  sorted.forEach((node) => {
-    // ルートスキップ
-    if (node.parentId === null) return;
-    // 親が計算済みか確認
-    const parent = coordMap.get(node.parentId);
-    if (!parent) return;
-
-    if (node.length === null || node.angle === null) return;
+  nodes.forEach((node) => {
     coordMap.set(node.id, {
-      x: parent.x + node.length * Math.cos(node.angle),
-      y: parent.y + node.length * Math.sin(node.angle),
+      x: node.x + ORIGIN_X,
+      y: node.y + ORIGIN_Y,
       r: node.size / 2,
       hue: node.hue,
     });
@@ -67,21 +58,21 @@ export const GardenCanvas = () => {
       viewBox="0 0 400 400"
     >
       {nodesData.map((n, i) => {
-          if(n.parentId === null) return; // ルート除外
-          const from = coordMap.get(n.parentId);
-          const to = coordMap.get(n.id);
-          return (
-            <line
-              key={i}
-              x1={from?.x}
-              y1={from?.y}
-              x2={to?.x}
-              y2={to?.y}
-              stroke={LINECOLOR}
-              strokeWidth={LINESIZE}
-            />
-          );
-        })}
+        if (n.parentId === null) return; // ルート除外
+        const from = coordMap.get(n.parentId);
+        const to = coordMap.get(n.id);
+        return (
+          <line
+            key={i}
+            x1={from?.x}
+            y1={from?.y}
+            x2={to?.x}
+            y2={to?.y}
+            stroke={LINECOLOR}
+            strokeWidth={LINESIZE}
+          />
+        );
+      })}
       {Array.from(coordMap.entries()).map(([id, n]) => (
         <circle
           key={id}

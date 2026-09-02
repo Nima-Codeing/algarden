@@ -10,11 +10,11 @@ export const mockPlant: PlantData = {
     {
       // root node
       id: "nodeId-0",
+      x: 0,
+      y: 0,
       hue: 120,
       size: 50,
       depth: 0,
-      angle: null,
-      length: null,
       parentId: null,
       todoId: null,
       plantId: "plantId-0",
@@ -23,11 +23,11 @@ export const mockPlant: PlantData = {
     {
       // root child node 1
       id: "nodeId-1",
+      x: 0,
+      y: 50,
       hue: 100,
       size: 30,
       depth: 1,
-      angle: Math.PI / 2,
-      length: 50,
       parentId: "nodeId-0",
       todoId: null,
       plantId: "plantId-0",
@@ -36,11 +36,11 @@ export const mockPlant: PlantData = {
     {
       // root child node 2
       id: "nodeId-2",
+      x: 50,
+      y: 100,
       hue: 80,
       size: 50,
       depth: 1,
-      angle: 3 * Math.PI / 4,
-      length: 80,
       parentId: "nodeId-0",
       todoId: null,
       plantId: "plantId-0",
