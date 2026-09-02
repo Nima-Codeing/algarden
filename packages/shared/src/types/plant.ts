@@ -4,11 +4,11 @@ export type SeedType = 'TENDRIL';
 
 export interface PlantNodeData {
   id: string;
+  x: number;
+  y: number;
   hue: number;
   size: number;
   depth: number;
-  angle: number | null;
-  length: number | null;
   parentId: string | null;
   todoId: string | null;
   plantId: string;

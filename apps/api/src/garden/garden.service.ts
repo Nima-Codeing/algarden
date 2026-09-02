@@ -91,6 +91,8 @@ export class GardenService {
       // ルートノード生成
       await tx.plantNode.create({
         data: {
+          x: 0,
+          y: 0,
           hue: 120.0,
           size: 20.0,
           depth: 0,
