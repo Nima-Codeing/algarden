@@ -13,6 +13,7 @@ export const TodoList = ({ todos }: Props) => {
         return (
           <TodoItem
             key={todo.id}
+            id={todo.id}
             title={todo.title}
             targetDuration={todo.targetDuration}
           />
