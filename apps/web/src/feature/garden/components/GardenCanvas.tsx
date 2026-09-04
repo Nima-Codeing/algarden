@@ -1,5 +1,4 @@
-import type { PlantNodeData } from "@algarden/shared";
-import { mockPlant } from "../mockNodeData";
+import type { PlantData, PlantNodeData } from "@algarden/shared";
 
 interface Coordinate {
   x: number;
@@ -7,6 +6,10 @@ interface Coordinate {
   r: number;
   hue: number;
 }
+
+type Props = {
+  plants: PlantData[] | undefined;
+};
 
 /**
  * Plant内ローカル座標を描画用のキャンバス座標へ平行移動する。
@@ -42,13 +45,11 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
   return coordMap;
 };
 
-export const GardenCanvas = () => {
+export const GardenCanvas = ({ plants }: Props) => {
   const LINECOLOR = "#ffffff";
   const LINESIZE = 1;
   const SATURATION = 80;
   const BRIGHTNESS = 65;
-  const nodesData: PlantNodeData[] = mockPlant.plantNodes;
-  const coordMap = calcCoord(nodesData);
 
   return (
     <svg
@@ -57,31 +58,43 @@ export const GardenCanvas = () => {
       height="400"
       viewBox="0 0 400 400"
     >
-      {nodesData.map((n, i) => {
-        if (n.parentId === null) return; // ルート除外
-        const from = coordMap.get(n.parentId);
-        const to = coordMap.get(n.id);
-        return (
-          <line
-            key={i}
-            x1={from?.x}
-            y1={from?.y}
-            x2={to?.x}
-            y2={to?.y}
-            stroke={LINECOLOR}
-            strokeWidth={LINESIZE}
-          />
-        );
-      })}
-      {Array.from(coordMap.entries()).map(([id, n]) => (
-        <circle
-          key={id}
-          cx={n.x}
-          cy={n.y}
-          r={n.r}
-          fill={`hsl(${n.hue} ${SATURATION}% ${BRIGHTNESS}%)`}
-        />
-      ))}
+      {
+        // Plant単位で描画する
+        (plants ?? []).map((plant) => {
+          const coordMap = calcCoord(plant.plantNodes);
+
+          return (
+            <g key={plant.id}>
+              {plant.plantNodes.map((n) => {
+                if (n.parentId === null) return null; // ルート除外
+                const from = coordMap.get(n.parentId);
+                const to = coordMap.get(n.id);
+                return (
+                  <line
+                    key={n.id}
+                    x1={from?.x}
+                    y1={from?.y}
+                    x2={to?.x}
+                    y2={to?.y}
+                    stroke={LINECOLOR}
+                    strokeWidth={LINESIZE}
+                  />
+                );
+              })}
+
+              {Array.from(coordMap.entries()).map(([id, n]) => (
+                <circle
+                  key={id}
+                  cx={n.x}
+                  cy={n.y}
+                  r={n.r}
+                  fill={`hsl(${n.hue} ${SATURATION}% ${BRIGHTNESS}%)`}
+                />
+              ))}
+            </g>
+          );
+        })
+      }
     </svg>
   );
 };

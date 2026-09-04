@@ -3,14 +3,25 @@ import { TodoList } from "../feature/todo/components/TodoList";
 import { getTodos } from "../feature/todo/api/getTodos";
 import { useUserStore } from "../stores/authStore";
 import { GardenCanvas } from "../feature/garden/components/GardenCanvas";
-import type { TodoData } from "@algarden/shared";
+import { getGarden } from "../feature/garden/api/getGarden";
+import type { GardenData, TodoData } from "@algarden/shared";
 
 export const HomePage = () => {
   const [todos, setTodos] = useState<TodoData[]>([]);
+  const [garden, setGarden] = useState<GardenData>();
   const user = useUserStore((state) => state.user);
 
   useEffect(() => {
-    getTodos().then(setTodos);
+    getTodos()
+      .then(setTodos)
+      .catch((e) => {
+        console.error(e);
+      });
+    getGarden()
+      .then(setGarden)
+      .catch((e) => {
+        console.error(e);
+      });
   }, []);
 
   return (
@@ -20,7 +31,7 @@ export const HomePage = () => {
         <TodoList todos={todos} />
       </div>
 
-      <GardenCanvas />
+      <GardenCanvas plants={garden?.plants} />
     </>
   );
 };
