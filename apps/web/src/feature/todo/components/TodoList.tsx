@@ -1,18 +1,19 @@
+import type { TodoData } from "@algarden/shared";
 import { Card } from "../../../components/ui/Card";
-import type { Todo } from "../api/getTodos";
 import { TodoItem } from "./TodoItem";
 
 type Props = {
-  todos: Todo[];
+  todos: TodoData[];
 };
 
 export const TodoList = ({ todos }: Props) => {
   return (
     <Card>
-      {todos.map((todo: Todo) => {
+      {todos.map((todo: TodoData) => {
         return (
           <TodoItem
             key={todo.id}
+            id={todo.id}
             title={todo.title}
             targetDuration={todo.targetDuration}
           />
