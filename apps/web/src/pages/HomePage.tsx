@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { TodoList } from "../feature/todo/components/TodoList";
-import { getTodos, type Todo } from "../feature/todo/api/getTodos";
+import { getTodos } from "../feature/todo/api/getTodos";
 import { useUserStore } from "../stores/authStore";
 import { GardenCanvas } from "../feature/garden/components/GardenCanvas";
+import type { TodoData } from "@algarden/shared";
 
 export const HomePage = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<TodoData[]>([]);
   const user = useUserStore((state) => state.user);
 
   useEffect(() => {

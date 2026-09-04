@@ -1,12 +1,7 @@
+import type { TodoData } from "@algarden/shared";
 import { apiClient } from "../../../api/client";
 
-export type Todo = {
-  id: string;
-  title: string;
-  targetDuration?: number;
-};
-
-export const getTodos = async (): Promise<Todo[]> => {
+export const getTodos = async (): Promise<TodoData[]> => {
   const res = await apiClient("/todos");
   if (!res.ok) throw new Error("Failed to fetch todos");
   return res.json();

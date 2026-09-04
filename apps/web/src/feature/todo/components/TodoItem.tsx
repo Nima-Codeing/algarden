@@ -1,6 +1,6 @@
 type Props = {
   title: string;
-  targetDuration?: number;
+  targetDuration?: number | null;
 };
 
 export const TodoItem = ({ title, targetDuration }: Props) => {
