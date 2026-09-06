@@ -1,4 +1,5 @@
-import type { PlantData, PlantNodeData } from "@algarden/shared";
+import type { PlantNodeData } from "@algarden/shared";
+import { useGarden } from "../api/queries";
 
 interface Coordinate {
   x: number;
@@ -6,10 +7,6 @@ interface Coordinate {
   r: number;
   hue: number;
 }
-
-type Props = {
-  plants: PlantData[] | undefined;
-};
 
 /**
  * Plant内ローカル座標を描画用のキャンバス座標へ平行移動する。
@@ -45,11 +42,16 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
   return coordMap;
 };
 
-export const GardenCanvas = ({ plants }: Props) => {
+export const GardenCanvas = () => {
   const LINECOLOR = "#ffffff";
   const LINESIZE = 1;
   const SATURATION = 80;
   const BRIGHTNESS = 65;
+
+  const { data: garden, isPending, isError } = useGarden();
+
+  if (isPending) return <p>loading...</p>;
+  if (isError) return <p>Failed to load garden.</p>;
 
   return (
     <svg
@@ -60,7 +62,7 @@ export const GardenCanvas = ({ plants }: Props) => {
     >
       {
         // Plant単位で描画する
-        (plants ?? []).map((plant) => {
+        garden.plants.map((plant) => {
           const coordMap = calcCoord(plant.plantNodes);
 
           return (

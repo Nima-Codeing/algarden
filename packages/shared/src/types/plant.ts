@@ -1,6 +1,6 @@
-export type GrowthStage = 'SPROUT' | 'YOUNG' | 'MATURE' | 'BLOOM';
+export type GrowthStage = "SPROUT" | "YOUNG" | "MATURE" | "BLOOM";
 
-export type SeedType = 'TENDRIL';
+export type SeedType = "TENDRIL";
 
 export interface PlantNodeData {
   id: string;

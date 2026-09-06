@@ -1,6 +1,6 @@
-import type { PlantData } from './plant';
+import type { PlantData } from "./plant";
 
-export type GardenPeriod = 'MONTHLY';
+export type GardenPeriod = "MONTHLY";
 
 export interface GardenData {
   id: string;

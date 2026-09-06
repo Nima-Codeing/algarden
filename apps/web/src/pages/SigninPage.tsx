@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { apiClient } from "../api/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../api/queryKeys";
 
 export const SigninPage = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState<string>("");
@@ -17,6 +20,7 @@ export const SigninPage = () => {
 
       if (!signinRes.ok) return;
 
+      queryClient.invalidateQueries({ queryKey: queryKeys.user });
       navigate("/");
     } catch {
       return;

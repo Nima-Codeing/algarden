@@ -1,4 +1,4 @@
-export type TodoScore = 'S' | 'A' | 'B' | 'C' | 'D';
+export type TodoScore = "S" | "A" | "B" | "C" | "D";
 
 export interface TodoData {
   id: string;

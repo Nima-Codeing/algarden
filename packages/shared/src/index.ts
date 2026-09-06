@@ -2,3 +2,4 @@
 export * from "./types/plant";
 export * from "./types/todo";
 export * from "./types/garden";
+export * from "./types/user";
