@@ -1,6 +1,7 @@
 type Props = {
   title: string;
   targetDuration: number | null;
+  isCompleted: boolean;
   onComplete: () => void;
   onStart: () => void;
 };
@@ -8,6 +9,7 @@ type Props = {
 export const TodoItem = ({
   title,
   targetDuration,
+  isCompleted,
   onComplete,
   onStart,
 }: Props) => {
@@ -15,7 +17,7 @@ export const TodoItem = ({
     <div className="flex text-lg text-bold font-sans mx-4 my-2 border-b-1 border-purple-500 grid grid-cols-4 gap-1">
       {/* check box */}
       <div className="m-auto">
-        <input type="checkbox" onChange={onComplete} />
+        <input type="checkbox" checked={isCompleted} onChange={onComplete} />
       </div>
 
       {/* title */}
