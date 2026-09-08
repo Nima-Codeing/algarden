@@ -1,5 +1,28 @@
 import { GrowthStage, Prisma } from 'generated/prisma/client';
 
+// フロントに送るPlantの項目。gardenSelectから参照される
+export const plantSelect = {
+  id: true,
+  plantNodes: {
+    select: {
+      id: true,
+      x: true,
+      y: true,
+      hue: true,
+      size: true,
+      parentId: true,
+      createdAt: true,
+    },
+  },
+  plantEdges: {
+    select: {
+      id: true,
+      fromId: true,
+      toId: true,
+    },
+  },
+} satisfies Prisma.PlantSelect;
+
 export type CreatedNode = {
   x: number;
   y: number;
@@ -11,7 +34,8 @@ export type CreatedNode = {
   plantId: string;
 };
 
-export type PlantWithNode = Prisma.PlantGetPayload<{
+// 成長処理用。depthなど画面に送らない項目も必要なためinclude
+export type PlantWithNodes = Prisma.PlantGetPayload<{
   include: { plantNodes: true };
 }>;
 

@@ -7,7 +7,12 @@ import { PlantNode, Todo, TodoScore } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
-import { CompleteTodo, Score } from './types/todo.types';
+import {
+  CompleteTodo,
+  Score,
+  TodoResponse,
+  todoSelect,
+} from './types/todo.types';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { GardenService } from 'src/garden/garden.service';
 import { PlantService } from 'src/plant/plant.service';
@@ -60,9 +65,10 @@ export class TodoService {
 
   // -----------------------------------------------------------------------------
 
-  async findActiveGardenTodos(userId: string): Promise<Todo[]> {
+  async findActiveGardenTodos(userId: string): Promise<TodoResponse[]> {
     const gardenId = await this.getActiveGardenId(userId);
     return await this.prismaService.todo.findMany({
+      select: todoSelect,
       where: { gardenId },
     });
   }
