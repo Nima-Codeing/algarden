@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../../api/queryKeys";
 import { getTodos } from "./getTodos";
 import { completeTodo } from "./completeTodo";
@@ -23,7 +19,7 @@ export const useStartTodo = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.todos });
     },
     onError: (e) => {
-      console.error("Failed to start: " + e);
+      alert(e.message || "エラーが発生しました。");
     },
   });
 };
@@ -38,7 +34,7 @@ export const useCompleteTodo = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.gardens });
     },
     onError: (e) => {
-      console.error("Failed to complete: " + e);
+      alert(e.message || "エラーが発生しました。");
     },
   });
 };
