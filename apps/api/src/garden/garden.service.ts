@@ -8,7 +8,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { Garden, Plant, PlantNode } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PlantSeedDto } from './dto/plant-seed.dto';
-import { GardenWithPlants } from './types/garden.types';
+import { gardenSelect, GardenWithPlants } from './types/garden.types';
 
 @Injectable()
 export class GardenService {
@@ -17,17 +17,10 @@ export class GardenService {
   // ユーザーのアクティブなGardenを取得する
   async getActive(userId: string): Promise<GardenWithPlants> {
     const garden = await this.prismaService.garden.findFirst({
+      select: gardenSelect,
       where: {
         userId,
         isActive: true,
-      },
-      include: {
-        plants: {
-          include: {
-            plantNodes: true,
-            plantEdges: true,
-          },
-        },
       },
     });
     if (!garden) {

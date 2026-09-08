@@ -4,7 +4,7 @@ import {
   CreatedNode,
   GrowthStageResult,
   NodeWithChildIds,
-  PlantWithNode,
+  PlantWithNodes,
 } from './types/plant.types';
 
 @Injectable()
@@ -48,7 +48,7 @@ export class PlantService {
    */
   generateNode(
     count: number,
-    selectPlant: PlantWithNode,
+    selectPlant: PlantWithNodes,
     todoId: string,
   ): CreatedNode[] {
     const MIN_HUE = 80;

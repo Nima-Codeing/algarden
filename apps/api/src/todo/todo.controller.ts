@@ -10,12 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
-import { PlantNode, Todo } from 'generated/prisma/client';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { RequestUser } from 'src/auth/types/requsetUser.types';
+import { TodoResponse } from './types/todo.types';
+import { PlantNode, Todo } from 'generated/prisma/client';
 
 @Controller('todos')
 @UseGuards(AuthGuard('jwt'))
@@ -23,7 +24,9 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  async findAll(@Req() req: Request & { user: RequestUser }): Promise<Todo[]> {
+  async findAll(
+    @Req() req: Request & { user: RequestUser },
+  ): Promise<TodoResponse[]> {
     return await this.todoService.findActiveGardenTodos(req.user.id);
   }
 

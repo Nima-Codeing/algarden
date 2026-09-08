@@ -1,5 +1,5 @@
 import { TodoData } from '@algarden/shared';
-import { Todo, TodoScore } from 'generated/prisma/client';
+import { Prisma, TodoScore } from 'generated/prisma/client';
 import { Assert, Jsonify } from 'src/common/types/contract.types';
 
 export type Score = {
@@ -13,5 +13,23 @@ export type CompleteTodo = {
   targetDuration: number | null;
 };
 
-// 共通型とのtypecheck
-export type TodoContract = Assert<TodoData, Jsonify<Todo>>;
+export const todoSelect = {
+  id: true,
+  title: true,
+  isCompleted: true,
+  targetDuration: true,
+  score: true,
+  startedAt: true,
+  completedAt: true,
+} satisfies Prisma.TodoSelect;
+
+// フロントに送るデータ
+export type TodoResponse = Prisma.TodoGetPayload<{
+  select: typeof todoSelect;
+}>;
+
+// 共通型の項目が不足していないか
+export type TodoContract = Assert<TodoData, Jsonify<TodoResponse>>;
+
+// 共通型にない項目を余分に転送していないか
+export type TodoContractNoExcess = Assert<Jsonify<TodoResponse>, TodoData>;

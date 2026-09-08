@@ -6,9 +6,6 @@ export interface TodoData {
   isCompleted: boolean;
   targetDuration: number | null;
   score: TodoScore | null;
-  gardenId: string;
-  userId: string;
   startedAt: string | null;
   completedAt: string | null;
-  createdAt: string;
 }
