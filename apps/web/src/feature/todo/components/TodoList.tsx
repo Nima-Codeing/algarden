@@ -18,6 +18,7 @@ export const TodoList = () => {
             key={todo.id}
             title={todo.title}
             targetDuration={todo.targetDuration}
+            isCompleted={todo.isCompleted}
             onComplete={() => completeMutation.mutate(todo.id)}
             onStart={() => startMutation.mutate(todo.id)}
           />
