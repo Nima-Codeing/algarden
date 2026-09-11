@@ -49,6 +49,70 @@ export class PlantService {
     });
   }
 
+  /**
+   * 指定Plantに指定個数のノードを1つずつ生やす
+   *
+   * 1個生やすごとにノードを取り直し、更新後の木の形をもとに次の着火点を選ぶ
+   *
+   * @param {string} plantId - 成長させるPlantのid
+   * @param {number} count - 生成するノード数
+   */
+  async grow(plantId: string, count: number) {
+    for (let i = 0; i < count; i++) {
+      const nodes: NodeWithChildrens[] = await this.getPlantNodes(plantId);
+      this.determineGrowthPoint(nodes);
+    }
+  }
+
+  /**
+   * 新しいノードを生やす親ノード（着火点）を二系統抽選で決定する
+   *
+   * 子ノード数がMAX_CHILDREN未満のノードを候補とし、pLeafの確率で
+   * 葉に近いノードほど当たりやすい重み付き抽選を行う。外れた場合は
+   * 候補からの完全ランダム抽選になる
+   *
+   * @param {NodeWithChildrens[]} nodes - 成長対象のPlant内全ノード群
+   * @returns {string} 着火点に選ばれたノードのid
+   * @throws {Error} 候補ノードが1つも存在しない場合
+   */
+  private determineGrowthPoint(nodes: NodeWithChildrens[]): string {
+    const P_LEAF = 0.8; // 葉ノード高さ優先ルートを選ぶ確率（0.0以上1.0以下）
+    const MAX_CHILDREN = 4; // 子ノード数の上限
+
+    // 葉からの高さ計算
+    // NOTE: 参照で計算していて、子を除外すると親が計算できなくなるため全ノードで計算
+    const heights = this.calcHeights(nodes);
+
+    // 抽出対象は子ノード数が４未満のノードのみ
+    const candidates = nodes.filter((n) => n.children.length < MAX_CHILDREN);
+    if (candidates.length === 0) {
+      throw new Error('成長可能なノードがありません。');
+    }
+
+    if (this.withChance(P_LEAF)) {
+      /* 葉ノード高さ優先ルート */
+      // 葉に近いほど大きい重み。nodesの順に生成
+      const maxHeight = Math.max(...heights.values());
+      const weights = candidates.map(
+        (n) => maxHeight - (heights.get(n.id) ?? 0) + 1,
+      );
+      const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+
+      // 重みを順に引いて、最初に負になったノードが当選
+      let r = this.random(0, totalWeight);
+      for (let j = 0; j < weights.length; j++) {
+        r -= weights[j];
+        if (r < 0) return candidates[j].id;
+      }
+
+      // 境界値のフォールバック
+      return candidates[candidates.length - 1].id;
+    }
+
+    /* 完全ランダムルート */
+    const rr = Math.floor(this.random(0, candidates.length));
+    return candidates[rr].id;
+  }
 
   /**
    * 指定された個数の子ノードをランダムな親から生成する
