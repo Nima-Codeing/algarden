@@ -171,7 +171,13 @@ export class TodoService {
     const gardenId = await this.getActiveGardenId(userId);
     const selectPlant = await this.prismaService.plant.findFirst({
       where: { gardenId },
-      include: { plantNodes: true },
+      include: {
+        plantNodes: {
+          include: {
+            children: true,
+          },
+        },
+      },
     });
 
     if (!selectPlant) {

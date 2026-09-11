@@ -4,11 +4,15 @@ import {
   CreatedNode,
   GrowthStageResult,
   NodeWithChildIds,
+  NodeWithChildrens,
   PlantWithNodes,
 } from './types/plant.types';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PlantService {
+  constructor(private readonly prismaService: PrismaService) {}
+
   /**
    * 指定された範囲内のランダムな小数を生成する
    *
@@ -37,6 +41,14 @@ export class PlantService {
   private withChance(prob: number): boolean {
     return Math.random() < prob;
   }
+
+  private async getPlantNodes(plantId: string): Promise<NodeWithChildrens[]> {
+    return await this.prismaService.plantNode.findMany({
+      where: { plantId },
+      include: { children: true },
+    });
+  }
+
 
   /**
    * 指定された個数の子ノードをランダムな親から生成する

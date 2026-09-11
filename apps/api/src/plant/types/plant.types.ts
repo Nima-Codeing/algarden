@@ -36,7 +36,19 @@ export type CreatedNode = {
 
 // 成長処理用。depthなど画面に送らない項目も必要なためinclude
 export type PlantWithNodes = Prisma.PlantGetPayload<{
-  include: { plantNodes: true };
+  include: {
+    plantNodes: {
+      include: {
+        children: true;
+      };
+    };
+  };
+}>;
+
+export type NodeWithChildrens = Prisma.PlantNodeGetPayload<{
+  include: {
+    children: true;
+  };
 }>;
 
 export type NodeWithChildIds = {
