@@ -3,7 +3,7 @@ import { Prisma, TodoScore } from 'generated/prisma/client';
 import { Assert, Jsonify } from 'src/common/types/contract.types';
 
 export type Score = {
-  rank?: TodoScore;
+  rank: TodoScore | null;
   nodeCount: number;
 };
 

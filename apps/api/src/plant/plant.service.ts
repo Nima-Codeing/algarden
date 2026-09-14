@@ -1,13 +1,24 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { GrowthStage, Plant, PlantNode } from 'generated/prisma/client';
+import { Injectable } from '@nestjs/common';
+import { GrowthStage, Plant, Prisma } from 'generated/prisma/client';
 import {
   CreatedNode,
   GrowthStageResult,
   NodeWithChildIds,
   NodeWithChildrens,
-  PlantWithNodes,
+  PlantNodeResponse,
+  plantNodeSelect,
 } from './types/plant.types';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  BASE_HUE,
+  HUE_DECAY_PER_DEPTH,
+  MAX_CHILDREN,
+  MAX_SIZE_RATIO,
+  MIN_HUE,
+  MIN_SIZE,
+  MIN_SIZE_RATIO,
+  P_LEAF,
+} from './plant.constants';
 
 @Injectable()
 export class PlantService {
@@ -17,13 +28,13 @@ export class PlantService {
    * 指定された範囲内のランダムな小数を生成する
    *
    * @param {number} min - 最小値(含む)
-   * @param {number} max - 最大値(含む)
-   * @returns {number} min以上max以下のランダムな小数
+   * @param {number} max - 最大値(含まない)
+   * @returns {number} min以上max未満のランダムな小数
    * @throws {Error} minがmaxより大きい場合
    */
   private random(min: number, max: number): number {
     if (min > max) {
-      throw new Error('最小値は最大値以下である必要があります');
+      throw new Error('最小値は最大値未満である必要があります');
     }
     return Math.random() * (max - min) + min;
   }
@@ -42,11 +53,117 @@ export class PlantService {
     return Math.random() < prob;
   }
 
-  private async getPlantNodes(plantId: string): Promise<NodeWithChildrens[]> {
-    return await this.prismaService.plantNode.findMany({
+  /**
+   * 指定Garden内の全Plantを取得する
+   *
+   * @param {string} gardenId - 対象Gardenのid
+   * @returns {Plant[]} Plant配列
+   */
+  async getAllPlants(gardenId: string): Promise<Plant[]> {
+    return await this.prismaService.plant.findMany({
+      where: { gardenId },
+    });
+  }
+
+  /**
+   * 指定idのPlantを取得する
+   *
+   * @param {string} id - 取得するPlantのid
+   * @returns {Plant} 取得したPlant
+   * @throws {Error} 該当Plantが存在しない場合
+   */
+  async getPlant(id: string): Promise<Plant> {
+    return await this.prismaService.plant.findUniqueOrThrow({
+      where: { id },
+    });
+  }
+
+  /**
+   * 指定Plantの全ノードを子ノード付きで取得する
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {string} plantId - 対象Plantのid
+   * @returns {NodeWithChildrens[]} 子ノードを含む全ノード配列
+   */
+  async getPlantNodes(
+    tx: Prisma.TransactionClient,
+    plantId: string,
+  ): Promise<NodeWithChildrens[]> {
+    return await tx.plantNode.findMany({
       where: { plantId },
       include: { children: true },
     });
+  }
+
+  /**
+   * ノードを1件保存する
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {CreatedNode} nodeEmt - 保存するノードのパラメータ
+   * @returns {PlantNodeResponse} 保存されたノード
+   */
+  async createPlantNode(
+    tx: Prisma.TransactionClient,
+    nodeEmt: CreatedNode,
+  ): Promise<PlantNodeResponse> {
+    return await tx.plantNode.create({
+      data: nodeEmt,
+      select: plantNodeSelect,
+    });
+  }
+
+  /**
+   * Plantのノード数と成長段階を更新する
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {string} id - 対象Plantのid
+   * @param {number} cnt - 加算するノード数
+   * @param {GrowthStage} stage - 更新後の成長段階
+   */
+  async updatePlantGrowth(
+    tx: Prisma.TransactionClient,
+    id: string,
+    cnt: number,
+    stage: GrowthStage,
+  ) {
+    await tx.plant.update({
+      where: { id },
+      data: {
+        nodeCount: { increment: cnt },
+        growthStage: stage,
+      },
+    });
+  }
+
+  /**
+   * 追加ノード数をもとにPlantの現在の成長段階と昇格有無を算出する
+   *
+   * @param {string} plantId - 対象Plantのid
+   * @param {number} addNodeCnt - 追加するノード数
+   * @returns {GrowthStageResult} 現在の成長段階と昇格フラグ
+   */
+  async calcGrowthStage(
+    plantId: string,
+    addNodeCnt: number,
+  ): Promise<GrowthStageResult> {
+    const plant = await this.getPlant(plantId);
+    const curNodeCnt = plant.nodeCount + addNodeCnt;
+
+    const curStage: GrowthStage =
+      curNodeCnt <= 5
+        ? GrowthStage.SPROUT
+        : curNodeCnt <= 15
+          ? GrowthStage.YOUNG
+          : curNodeCnt <= 30
+            ? GrowthStage.MATURE
+            : GrowthStage.BLOOM;
+
+    const isPromotion: boolean = plant.growthStage !== curStage;
+
+    return {
+      curStage,
+      isPromotion,
+    } satisfies GrowthStageResult;
   }
 
   /**
@@ -54,31 +171,57 @@ export class PlantService {
    *
    * 1個生やすごとにノードを取り直し、更新後の木の形をもとに次の着火点を選ぶ
    *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
    * @param {string} plantId - 成長させるPlantのid
+   * @param {string} todoId - 成長もとのTodoのid
    * @param {number} count - 生成するノード数
+   * @param {GrowthStageResult} growthStat - 更新後の成長段階
+   * @returns {PlantNodeResponse[]} 生成・保存されたノード配列
    */
-  async grow(plantId: string, count: number) {
+  async grow(
+    tx: Prisma.TransactionClient,
+    plantId: string,
+    todoId: string,
+    count: number,
+    growthStat: GrowthStageResult,
+  ): Promise<PlantNodeResponse[]> {
+    const newNodes: PlantNodeResponse[] = [];
+
     for (let i = 0; i < count; i++) {
-      const nodes: NodeWithChildrens[] = await this.getPlantNodes(plantId);
-      this.determineGrowthPoint(nodes);
+      // 親ノード決定
+      const nodes: NodeWithChildrens[] = await this.getPlantNodes(tx, plantId);
+      if (nodes.filter((n) => n.parentId === null).length !== 1) {
+        throw new Error('Nodes情報が壊れています。');
+      }
+      const parent: NodeWithChildrens = this.determineGrowthPoint(nodes);
+
+      // ノード生成
+      const created: PlantNodeResponse = await this.generateNode(
+        tx,
+        plantId,
+        todoId,
+        parent,
+      );
+
+      newNodes.push(created);
     }
+    await this.updatePlantGrowth(tx, plantId, count, growthStat.curStage);
+
+    return newNodes;
   }
 
   /**
    * 新しいノードを生やす親ノード（着火点）を二系統抽選で決定する
    *
-   * 子ノード数がMAX_CHILDREN未満のノードを候補とし、pLeafの確率で
+   * 子ノード数がMAX_CHILDREN未満のノードを候補とし、P_LEAFの確率で
    * 葉に近いノードほど当たりやすい重み付き抽選を行う。外れた場合は
    * 候補からの完全ランダム抽選になる
    *
    * @param {NodeWithChildrens[]} nodes - 成長対象のPlant内全ノード群
-   * @returns {string} 着火点に選ばれたノードのid
+   * @returns {NodeWithChildrens} 着火点に選ばれたノード
    * @throws {Error} 候補ノードが1つも存在しない場合
    */
-  private determineGrowthPoint(nodes: NodeWithChildrens[]): string {
-    const P_LEAF = 0.8; // 葉ノード高さ優先ルートを選ぶ確率（0.0以上1.0以下）
-    const MAX_CHILDREN = 4; // 子ノード数の上限
-
+  determineGrowthPoint(nodes: NodeWithChildrens[]): NodeWithChildrens {
     // 葉からの高さ計算
     // NOTE: 参照で計算していて、子を除外すると親が計算できなくなるため全ノードで計算
     const heights = this.calcHeights(nodes);
@@ -102,103 +245,59 @@ export class PlantService {
       let r = this.random(0, totalWeight);
       for (let j = 0; j < weights.length; j++) {
         r -= weights[j];
-        if (r < 0) return candidates[j].id;
+        if (r < 0) return candidates[j];
       }
 
       // 境界値のフォールバック
-      return candidates[candidates.length - 1].id;
+      return candidates[candidates.length - 1];
     }
 
     /* 完全ランダムルート */
     const rr = Math.floor(this.random(0, candidates.length));
-    return candidates[rr].id;
+    return candidates[rr];
   }
 
   /**
-   * 指定された個数の子ノードをランダムな親から生成する
+   * 指定された親ノードから子ノードを1つ生成して保存する
    *
-   * @param {number} count - 生成するノード数
-   * @param {PlantWithNode} selectPlant - ノードを追加するPlant
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {string} plantId - 生成先Plantのid
    * @param {string} todoId - ノードの生成元となるTodoのid
-   * @returns {CreatedNode[]} 生成したノード配列
+   * @param {NodeWithChildrens} parent - 生成ノードの親
+   * @returns {PlantNodeResponse} 生成・保存されたノード
    */
-  generateNode(
-    count: number,
-    selectPlant: PlantWithNodes,
+  async generateNode(
+    tx: Prisma.TransactionClient,
+    plantId: string,
     todoId: string,
-  ): CreatedNode[] {
-    const MIN_HUE = 80;
-    const BASE_HUE = 120;
-    const HUE_DECAY_PER_DEPTH = 4;
-    const MIN_SIZE = 3;
-    const MIN_SIZE_RATIO = 0.65;
-    const MAX_SIZE_RATIO = 0.88;
+    parent: NodeWithChildrens,
+  ): Promise<PlantNodeResponse> {
+    // 色彩
+    const hue = Math.max(
+      MIN_HUE,
+      BASE_HUE - parent.depth * HUE_DECAY_PER_DEPTH,
+    );
+    // 大きさ
+    const size = Math.max(
+      MIN_SIZE,
+      parent.size * this.random(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
+    );
+    const angle = this.random(0, Math.PI * 2);
+    const dist = this.random(size + 10, size + 20);
 
-    const createdNodes: CreatedNode[] = [];
+    // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
+    const node = {
+      x: parent.x + dist * Math.cos(angle),
+      y: parent.y + dist * Math.sin(angle),
+      hue: hue,
+      size: size,
+      depth: parent.depth + 1,
+      parentId: parent.id,
+      plantId: plantId,
+      todoId,
+    } satisfies CreatedNode;
 
-    for (let i = 0; i < count; i++) {
-      const nodeIndex: number = Math.floor(
-        Math.random() * selectPlant.plantNodes.length,
-      );
-      const parentNode: PlantNode = selectPlant.plantNodes[nodeIndex];
-
-      if (!parentNode) {
-        throw new BadRequestException('親ノードが見つかりません。');
-      }
-
-      const hue = Math.max(
-        MIN_HUE,
-        BASE_HUE - parentNode.depth * HUE_DECAY_PER_DEPTH,
-      );
-      const size = Math.max(
-        MIN_SIZE,
-        parentNode.size * this.random(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
-      );
-      const angle = this.random(0, Math.PI * 2);
-      const dist = this.random(size + 10, size + 20);
-      // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
-      const childNode: CreatedNode = {
-        x: parentNode.x + dist * Math.cos(angle),
-        y: parentNode.y + dist * Math.sin(angle),
-        hue: hue,
-        size: size,
-        depth: parentNode.depth + 1,
-        parentId: parentNode.id,
-        plantId: selectPlant.id,
-        todoId,
-      };
-
-      createdNodes.push(childNode);
-    }
-
-    return createdNodes;
-  }
-
-  /**
-   * 追加ノード数をもとにPlantの現在の成長段階と昇格有無を算出する
-   *
-   * @param {Plant} selectPlant - 対象Plant
-   * @param {number} addNodeCnt - 追加するノード数
-   * @returns {GrowthStageResult} 現在の成長段階と昇格フラグ
-   */
-  calcGrowthStage(selectPlant: Plant, addNodeCnt: number): GrowthStageResult {
-    const curNodeCnt = selectPlant.nodeCount + addNodeCnt;
-
-    const curStage: GrowthStage =
-      curNodeCnt <= 5
-        ? GrowthStage.SPROUT
-        : curNodeCnt <= 15
-          ? GrowthStage.YOUNG
-          : curNodeCnt <= 30
-            ? GrowthStage.MATURE
-            : GrowthStage.BLOOM;
-
-    const isPromotion: boolean = selectPlant.growthStage !== curStage;
-
-    return {
-      curStage,
-      isPromotion,
-    };
+    return await this.createPlantNode(tx, node);
   }
 
   /**
