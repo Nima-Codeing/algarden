@@ -180,15 +180,22 @@ export class TodoService {
    * @param {string} todoId - タイマーを起動するTodoのid
    * @param {string} userId - 所有ユーザーのid
    * @returns {Todo} タイマーを起動したTodo
+   * @throws {NotFoundException} 該当Todoが存在しない、または所有ユーザーが一致しない場合
    */
   async startTimer(todoId: string, userId: string): Promise<Todo> {
-    // 指定Todoが属するGardenIdの取得
-    const gardenId = await this.getActiveGardenId(userId);
+    // 指定Todoの取得
+    const todo = await this.prismaService.todo.findFirst({
+      where: { id: todoId, userId },
+    });
+    if (!todo) {
+      throw new NotFoundException('TODOが見つかりません。');
+    }
 
     // 他Todoのタイマー起動確認
+    // NOTE: アクティブGardenではなくTodo自身のgardenIdで判定する
     const activeTodo = await this.prismaService.todo.findFirst({
       where: {
-        gardenId,
+        gardenId: todo.gardenId,
         startedAt: { not: null },
         completedAt: null,
       },
@@ -236,8 +243,9 @@ export class TodoService {
     const score: Score = this.calcScore(completeTodo);
 
     // 更新用Plant要素 作成
-    const gardenId = await this.getActiveGardenId(userId);
-    const plants = await this.plantService.getAllPlants(gardenId);
+    // NOTE: アクティブGardenではなくTodo自身のgardenIdを使う
+    // 期間リセット後に前期間のTodoを完了した際、別GardenのPlantに生えるため
+    const plants = await this.plantService.getAllPlants(currentTodo.gardenId);
     if (plants.length === 0)
       throw new NotFoundException('Plantが見つかりませんでした。');
     const plantId = plants[Math.floor(Math.random() * plants.length)].id;
