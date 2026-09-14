@@ -16,7 +16,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { RequestUser } from 'src/auth/types/requsetUser.types';
 import { TodoResponse } from './types/todo.types';
-import { PlantNode, Todo } from 'generated/prisma/client';
+import { Todo } from 'generated/prisma/client';
+import { PlantNodeResponse } from 'src/plant/types/plant.types';
 
 @Controller('todos')
 @UseGuards(AuthGuard('jwt'))
@@ -64,7 +65,7 @@ export class TodoController {
   async complete(
     @Param('id') id: string,
     @Req() req: Request & { user: RequestUser },
-  ): Promise<PlantNode[]> {
+  ): Promise<PlantNodeResponse[]> {
     return await this.todoService.complete(id, req.user.id);
   }
 }

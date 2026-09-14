@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PlantNode, Todo, TodoScore } from 'generated/prisma/client';
+import { Prisma, Todo, TodoScore } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
@@ -16,6 +16,7 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { GardenService } from 'src/garden/garden.service';
 import { PlantService } from 'src/plant/plant.service';
+import { PlantNodeResponse } from 'src/plant/types/plant.types';
 
 @Injectable()
 export class TodoService {
@@ -35,7 +36,7 @@ export class TodoService {
     const { startedAt, completedAt, targetDuration } = completeTodo;
 
     // 目標時間が未設定の場合はスコアなしでノード1個
-    if (!targetDuration) return { nodeCount: 1 };
+    if (!targetDuration) return { rank: null, nodeCount: 1 };
 
     // 作業時間(秒)
     const timeSpent: number =
@@ -58,6 +59,12 @@ export class TodoService {
     }
   }
 
+  /**
+   * ユーザーのアクティブなGardenのidを取得する
+   *
+   * @param {string} userId - 対象ユーザーのid
+   * @returns {string} アクティブなGardenのid
+   */
   private async getActiveGardenId(userId: string): Promise<string> {
     const garden = await this.gardenService.getActive(userId);
     return garden.id;
@@ -65,6 +72,12 @@ export class TodoService {
 
   // -----------------------------------------------------------------------------
 
+  /**
+   * アクティブなGardenに属するTodo一覧を取得する
+   *
+   * @param {string} userId - 対象ユーザーのid
+   * @returns {TodoResponse[]} Todo配列
+   */
   async findActiveGardenTodos(userId: string): Promise<TodoResponse[]> {
     const gardenId = await this.getActiveGardenId(userId);
     return await this.prismaService.todo.findMany({
@@ -73,6 +86,32 @@ export class TodoService {
     });
   }
 
+  /**
+   * 取り組み中(開始済かつ未完了)のTodoを取得する
+   *
+   * @param {string} id - 対象Todoのid
+   * @param {string} userId - 所有ユーザーのid
+   * @returns {Todo} 取り組み中のTodo
+   * @throws {Error} 該当Todoが存在しない場合
+   */
+  private async getTodoInProgress(id: string, userId: string): Promise<Todo> {
+    return await this.prismaService.todo.findFirstOrThrow({
+      where: {
+        id,
+        userId,
+        startedAt: { not: null },
+        completedAt: null,
+      },
+    });
+  }
+
+  /**
+   * アクティブなGardenにTodoを作成する
+   *
+   * @param {CreateTodoDto} createTodoDto - 作成するTodoの内容
+   * @param {string} userId - 作成者のid
+   * @returns {Todo} 作成したTodo
+   */
   async create(createTodoDto: CreateTodoDto, userId: string): Promise<Todo> {
     const gardenId = await this.getActiveGardenId(userId);
     return await this.prismaService.todo.create({
@@ -84,6 +123,13 @@ export class TodoService {
     });
   }
 
+  /**
+   * Todoを更新する
+   *
+   * @param {UpdateTodoDto} updateTodoDto - 更新内容
+   * @param {string} todoId - 更新するTodoのid
+   * @returns {Todo} 更新したTodo
+   */
   async update(updateTodoDto: UpdateTodoDto, todoId: string): Promise<Todo> {
     return await this.prismaService.todo.update({
       where: { id: todoId },
@@ -91,6 +137,36 @@ export class TodoService {
     });
   }
 
+  /**
+   * 完了時のスコアと完了日時をTodoに反映する
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {string} id - 更新するTodoのid
+   * @param {Score} score - 算出したスコア
+   * @param {Date} completedAt - 完了日時
+   * @returns {Todo} 更新したTodo
+   */
+  private async updateUponComplete(
+    tx: Prisma.TransactionClient,
+    id: string,
+    score: Score,
+    completedAt: Date,
+  ): Promise<Todo> {
+    return await tx.todo.update({
+      where: { id },
+      data: {
+        score: score.rank,
+        isCompleted: true,
+        completedAt: completedAt,
+      },
+    });
+  }
+
+  /**
+   * Todoを削除する
+   *
+   * @param {string} todoId - 削除するTodoのid
+   */
   async delete(todoId: string): Promise<void> {
     await this.prismaService.todo.delete({
       where: { id: todoId },
@@ -102,6 +178,7 @@ export class TodoService {
    * 同一Garden内で同時に起動できるタイマーは1つのみ
    *
    * @param {string} todoId - タイマーを起動するTodoのid
+   * @param {string} userId - 所有ユーザーのid
    * @returns {Todo} タイマーを起動したTodo
    */
   async startTimer(todoId: string, userId: string): Promise<Todo> {
@@ -144,80 +221,49 @@ export class TodoService {
    *
    * @param {string} todoId - 完了させるTodoのid
    * @param {string} userId - 完了したTodoの所有ユーザーのid
-   * @returns {PlantNode[]} 生成・保存されたノード配列
+   * @returns {PlantNodeResponse[]} 生成・保存されたノード配列
    */
-  async complete(todoId: string, userId: string): Promise<PlantNode[]> {
-    const currentTodo = await this.prismaService.todo.findFirst({
-      where: {
-        id: todoId,
-        userId,
-        startedAt: { not: null },
-        completedAt: null,
-      },
-    });
-
-    if (!currentTodo) {
-      throw new BadRequestException('現在取り組んでいるタスクではありません。');
-    }
-
+  async complete(todoId: string, userId: string): Promise<PlantNodeResponse[]> {
+    // 更新用Todo 作成
+    const currentTodo = await this.getTodoInProgress(todoId, userId);
     const completeTodo: CompleteTodo = {
       startedAt: currentTodo.startedAt!,
       completedAt: new Date(),
       targetDuration: currentTodo.targetDuration,
     };
 
-    const score = this.calcScore(completeTodo);
+    // 更新用Score 作成
+    const score: Score = this.calcScore(completeTodo);
 
+    // 更新用Plant要素 作成
     const gardenId = await this.getActiveGardenId(userId);
-    const selectPlant = await this.prismaService.plant.findFirst({
-      where: { gardenId },
-      include: { plantNodes: true },
+    const plants = await this.plantService.getAllPlants(gardenId);
+    if (plants.length === 0)
+      throw new NotFoundException('Plantが見つかりませんでした。');
+    const plantId = plants[Math.floor(Math.random() * plants.length)].id;
+
+    // 更新用成長段階 作成
+    const growthStat = await this.plantService.calcGrowthStage(
+      plantId,
+      score.nodeCount,
+    );
+
+    return await this.prismaService.$transaction(async (tx) => {
+      const newNodes = await this.plantService.grow(
+        tx,
+        plantId,
+        currentTodo.id,
+        score.nodeCount,
+        growthStat,
+      );
+      await this.updateUponComplete(
+        tx,
+        currentTodo.id,
+        score,
+        completeTodo.completedAt,
+      );
+
+      return newNodes;
     });
-
-    if (!selectPlant) {
-      throw new NotFoundException('Plantが見つかりません。');
-    }
-
-    const createNodes = this.plantService.generateNode(
-      score.nodeCount,
-      selectPlant,
-      currentTodo.id,
-    );
-
-    const growth = this.plantService.calcGrowthStage(
-      selectPlant,
-      score.nodeCount,
-    );
-
-    if (growth.isPromotion) {
-      // TODO: 成長段階昇格時の特殊演出
-    }
-
-    const [, resNodes] = await this.prismaService.$transaction([
-      this.prismaService.plant.update({
-        where: {
-          id: selectPlant.id,
-        },
-        data: {
-          nodeCount: { increment: score.nodeCount },
-          growthStage: growth.curStage,
-        },
-      }),
-      this.prismaService.plantNode.createManyAndReturn({
-        data: createNodes,
-      }),
-      this.prismaService.todo.update({
-        where: {
-          id: currentTodo.id,
-        },
-        data: {
-          score: score.rank,
-          isCompleted: true,
-          completedAt: completeTodo.completedAt,
-        },
-      }),
-    ]);
-
-    return resNodes;
   }
 }
