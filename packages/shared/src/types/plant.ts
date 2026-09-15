@@ -1,3 +1,5 @@
+export type PlantEdgeType = "SKELETON" | "SPREAD";
+
 export interface PlantData {
   id: string;
   plantNodes: PlantNodeData[];
@@ -18,4 +20,5 @@ export interface PlantEdgeData {
   id: string;
   fromId: string;
   toId: string;
+  edgeType: PlantEdgeType;
 }

@@ -21,6 +21,7 @@ export const plantEdgeSelect = {
   id: true,
   fromId: true,
   toId: true,
+  edgeType: true,
 } satisfies Prisma.PlantEdgeSelect;
 
 /** ------------- Plant ------------- **/
