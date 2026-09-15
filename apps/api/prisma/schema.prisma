@@ -37,6 +37,11 @@ enum TodoScore {
   D
 }
 
+enum EdgeType {
+  SKELETON // parentIdの対となる主系統エッジ
+  SPREAD // 延焼
+}
+
 // ========== Model ==========
 model User {
   id        String   @id @default(uuid()) @db.Uuid
@@ -130,6 +135,7 @@ model PlantNode {
 
 model PlantEdge {
   id        String    @id @default(uuid()) @db.Uuid
+  edgeType  EdgeType
   plantId   String    @db.Uuid
   plant     Plant     @relation(fields: [plantId], references: [id], onDelete: Cascade)
   fromId    String    @db.Uuid
@@ -137,4 +143,8 @@ model PlantEdge {
   toId      String    @db.Uuid
   to        PlantNode @relation("EdgeTo", fields: [toId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now()) @db.Timestamptz(0)
+
+  @@unique([fromId, toId])
+  @@index([toId])
+  @@index([plantId])
 }
