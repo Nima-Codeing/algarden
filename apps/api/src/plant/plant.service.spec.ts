@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PlantService } from './plant.service';
-import { NodeWithChildIds } from './types/plant.types';
+import { CreatedEdge, NodeWithChildIds } from './types/plant.types';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EdgeType, Prisma } from 'generated/prisma/client';
 
 describe('PlantService', () => {
   let service: PlantService;
@@ -119,6 +120,96 @@ describe('PlantService', () => {
 
       expect(heights.get('F')).toBe(0);
       expect(heights.size).toBe(nodes.length);
+    });
+  });
+
+  describe('createPlantEdges', () => {
+    // -------------------
+    //  引数生成ヘルパー関数
+    // -------------------
+    const PLANT_ID = 'plant-1';
+
+    const edge = (
+      fromId: string,
+      toId: string,
+      edgeType: EdgeType = EdgeType.SKELETON,
+    ): CreatedEdge => ({ plantId: PLANT_ID, fromId, toId, edgeType });
+
+    // DB既存エッジを返すトランザクションのモック
+    const createTx = (curEdges: { fromId: string; toId: string }[] = []) => {
+      const plantEdge = {
+        findMany: jest.fn().mockResolvedValue(curEdges),
+        createMany: jest.fn().mockResolvedValue({ count: 0 }),
+      };
+      const tx = { plantEdge } as unknown as Prisma.TransactionClient;
+      return { tx, plantEdge };
+    };
+
+    it('主エッジを渡した場合、親→新ノードの向きのまま保存される', async () => {
+      const { tx, plantEdge } = createTx();
+
+      await service.createPlantEdges(tx, PLANT_ID, [edge('P', 'N')]);
+
+      expect(plantEdge.createMany).toHaveBeenCalledWith({
+        data: [edge('P', 'N')],
+        skipDuplicates: true,
+      });
+    });
+
+    it('DBに既にある辺と逆向きの辺を渡した場合、保存されない', async () => {
+      const { tx, plantEdge } = createTx([{ fromId: 'A', toId: 'B' }]);
+
+      await service.createPlantEdges(tx, PLANT_ID, [
+        edge('B', 'A', EdgeType.SPREAD),
+      ]);
+
+      expect(plantEdge.createMany).toHaveBeenCalledWith({
+        data: [],
+        skipDuplicates: true,
+      });
+    });
+
+    it('同一バッチ内に逆向きの辺がある場合、先に渡した方だけ保存される', async () => {
+      const { tx, plantEdge } = createTx();
+
+      await service.createPlantEdges(tx, PLANT_ID, [
+        edge('A', 'B', EdgeType.SPREAD),
+        edge('B', 'A', EdgeType.SPREAD),
+      ]);
+
+      expect(plantEdge.createMany).toHaveBeenCalledWith({
+        data: [edge('A', 'B', EdgeType.SPREAD)],
+        skipDuplicates: true,
+      });
+    });
+
+    it('既存エッジの検索が、対象Plantと今回触れるノードに絞られる', async () => {
+      const { tx, plantEdge } = createTx();
+
+      await service.createPlantEdges(tx, PLANT_ID, [
+        edge('N', 'X', EdgeType.SPREAD),
+        edge('N', 'Y', EdgeType.SPREAD),
+      ]);
+
+      expect(plantEdge.findMany).toHaveBeenCalledWith({
+        where: {
+          plantId: PLANT_ID,
+          OR: [
+            { fromId: { in: ['N', 'X', 'Y'] } },
+            { toId: { in: ['N', 'X', 'Y'] } },
+          ],
+        },
+        select: { fromId: true, toId: true },
+      });
+    });
+
+    it('エッジが空の場合、DBにアクセスしない', async () => {
+      const { tx, plantEdge } = createTx();
+
+      await service.createPlantEdges(tx, PLANT_ID, []);
+
+      expect(plantEdge.findMany).not.toHaveBeenCalled();
+      expect(plantEdge.createMany).not.toHaveBeenCalled();
     });
   });
 });

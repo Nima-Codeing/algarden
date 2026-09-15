@@ -1,5 +1,5 @@
 import { PlantNodeData } from '@algarden/shared';
-import { GrowthStage, Prisma } from 'generated/prisma/client';
+import { EdgeType, GrowthStage, Prisma } from 'generated/prisma/client';
 import { Assert, Jsonify } from 'src/common/types/contract.types';
 
 /* -------------- 共有用 -------------- */
@@ -21,6 +21,7 @@ export const plantEdgeSelect = {
   id: true,
   fromId: true,
   toId: true,
+  edgeType: true,
 } satisfies Prisma.PlantEdgeSelect;
 
 /** ------------- Plant ------------- **/
@@ -73,6 +74,14 @@ export type NodeWithChildrens = Prisma.PlantNodeGetPayload<{
     children: true;
   };
 }>;
+
+/** ----------- PlantEdge ----------- **/
+export type CreatedEdge = {
+  plantId: string;
+  fromId: string;
+  toId: string;
+  edgeType: EdgeType;
+};
 
 /** ------------- Plant ------------- **/
 // 成長処理用。depthなど画面に送らない項目も必要なためinclude

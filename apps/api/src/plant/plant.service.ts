@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { GrowthStage, Plant, Prisma } from 'generated/prisma/client';
+import { EdgeType, GrowthStage, Plant, Prisma } from 'generated/prisma/client';
 import {
+  CreatedEdge,
   CreatedNode,
   GrowthStageResult,
   NodeWithChildIds,
@@ -136,6 +137,54 @@ export class PlantService {
   }
 
   /**
+   * エッジを一括保存する
+   *
+   * fromId → toId はアニメーションの進行方向を表す。
+   * 主エッジは 親 → 新ノード、延焼エッジは 新ノード → 燃えた既存ノード。
+   * 向きは保持したまま、重複判定だけをid昇順のキーに畳んで無向として扱う
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {string} plantId - 対象Plantのid
+   * @param {CreatedEdge[]} edges - 保存するエッジ配列
+   */
+  async createPlantEdges(
+    tx: Prisma.TransactionClient,
+    plantId: string,
+    edges: CreatedEdge[],
+  ): Promise<void> {
+    if (edges.length === 0) return;
+
+    // 今回触れるノードに関わるエッジだけを引く
+    const nodeIds = [...new Set(edges.flatMap((e) => [e.fromId, e.toId]))];
+    const curEdges = await tx.plantEdge.findMany({
+      where: {
+        plantId,
+        OR: [{ fromId: { in: nodeIds } }, { toId: { in: nodeIds } }],
+      },
+      select: { fromId: true, toId: true },
+    });
+
+    // 無向の重複判定キー
+    // (A,B) と (B,A) が同じ文字列になる
+    const toKey = (a: string, b: string): string =>
+      a < b ? `${a}:${b}` : `${b}:${a}`;
+
+    const seen = new Set(curEdges.map((e) => toKey(e.fromId, e.toId)));
+
+    const saveEdges = edges.filter((e) => {
+      const key = toKey(e.fromId, e.toId);
+      if (seen.has(key)) return false;
+      seen.add(key); // バッチ内の重複対策
+      return true;
+    });
+
+    await tx.plantEdge.createMany({
+      data: saveEdges,
+      skipDuplicates: true,
+    });
+  }
+
+  /**
    * 追加ノード数をもとにPlantの現在の成長段階と昇格有無を算出する
    *
    * @param {string} plantId - 対象Plantのid
@@ -196,14 +245,14 @@ export class PlantService {
       const parent: NodeWithChildrens = this.determineGrowthPoint(nodes);
 
       // ノード生成
-      const created: PlantNodeResponse = await this.generateNode(
+      const newNode: PlantNodeResponse = await this.generateNode(
         tx,
         plantId,
         todoId,
         parent,
       );
 
-      newNodes.push(created);
+      newNodes.push(newNode);
     }
     await this.updatePlantGrowth(tx, plantId, count, growthStat.curStage);
 
@@ -297,7 +346,19 @@ export class PlantService {
       todoId,
     } satisfies CreatedNode;
 
-    return await this.createPlantNode(tx, node);
+    // ノード生成
+    const newNode = await this.createPlantNode(tx, node);
+
+    // 主エッジ作成
+    const edge: CreatedEdge = {
+      plantId: plantId,
+      fromId: parent.id,
+      toId: newNode.id,
+      edgeType: EdgeType.SKELETON,
+    };
+    await this.createPlantEdges(tx, plantId, [edge]);
+
+    return newNode;
   }
 
   /**
