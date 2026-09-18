@@ -2,17 +2,23 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PlantService } from './plant.service';
 import { CreatedEdge, NodeWithChildIds } from './types/plant.types';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EdgeType, Prisma } from 'generated/prisma/client';
+import { RandomService } from 'src/common/random/random.service';
 
 describe('PlantService', () => {
   let service: PlantService;
+  let randomService: RandomService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PlantService, { provide: PrismaService, useValue: {} }],
+      providers: [
+        PlantService,
+        { provide: PrismaService, useValue: {} },
+        { provide: RandomService, useValue: { withChance: () => {} } },
+      ],
     }).compile();
 
     service = module.get<PlantService>(PlantService);
+    randomService = module.get<RandomService>(RandomService);
   });
 
   describe('calcHeights', () => {
@@ -139,7 +145,7 @@ describe('PlantService', () => {
     const createTx = (curEdges: { fromId: string; toId: string }[] = []) => {
       const plantEdge = {
         findMany: jest.fn().mockResolvedValue(curEdges),
-        createMany: jest.fn().mockResolvedValue({ count: 0 }),
+        createManyAndReturn: jest.fn().mockResolvedValue([]),
       };
       const tx = { plantEdge } as unknown as Prisma.TransactionClient;
       return { tx, plantEdge };
@@ -150,7 +156,7 @@ describe('PlantService', () => {
 
       await service.createPlantEdges(tx, PLANT_ID, [edge('P', 'N')]);
 
-      expect(plantEdge.createMany).toHaveBeenCalledWith({
+      expect(plantEdge.createManyAndReturn).toHaveBeenCalledWith({
         data: [edge('P', 'N')],
         skipDuplicates: true,
       });
@@ -163,7 +169,7 @@ describe('PlantService', () => {
         edge('B', 'A', EdgeType.SPREAD),
       ]);
 
-      expect(plantEdge.createMany).toHaveBeenCalledWith({
+      expect(plantEdge.createManyAndReturn).toHaveBeenCalledWith({
         data: [],
         skipDuplicates: true,
       });
@@ -177,7 +183,7 @@ describe('PlantService', () => {
         edge('B', 'A', EdgeType.SPREAD),
       ]);
 
-      expect(plantEdge.createMany).toHaveBeenCalledWith({
+      expect(plantEdge.createManyAndReturn).toHaveBeenCalledWith({
         data: [edge('A', 'B', EdgeType.SPREAD)],
         skipDuplicates: true,
       });
@@ -209,7 +215,7 @@ describe('PlantService', () => {
       await service.createPlantEdges(tx, PLANT_ID, []);
 
       expect(plantEdge.findMany).not.toHaveBeenCalled();
-      expect(plantEdge.createMany).not.toHaveBeenCalled();
+      expect(plantEdge.createManyAndReturn).not.toHaveBeenCalled();
     });
   });
 });
