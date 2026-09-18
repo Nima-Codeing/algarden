@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { EdgeType, GrowthStage, Plant, Prisma } from 'generated/prisma/client';
+import {
+  EdgeType,
+  GrowthStage,
+  Plant,
+  PlantEdge,
+  Prisma,
+} from 'generated/prisma/client';
 import {
   CreatedEdge,
   CreatedNode,
@@ -18,41 +24,19 @@ import {
   MIN_HUE,
   MIN_SIZE,
   MIN_SIZE_RATIO,
+  P_BURN_MAIN,
+  P_BURN_SUB,
+  P_FIRE,
   P_LEAF,
 } from './plant.constants';
+import { RandomService } from 'src/common/random/random.service';
 
 @Injectable()
 export class PlantService {
-  constructor(private readonly prismaService: PrismaService) {}
-
-  /**
-   * 指定された範囲内のランダムな小数を生成する
-   *
-   * @param {number} min - 最小値(含む)
-   * @param {number} max - 最大値(含まない)
-   * @returns {number} min以上max未満のランダムな小数
-   * @throws {Error} minがmaxより大きい場合
-   */
-  private random(min: number, max: number): number {
-    if (min > max) {
-      throw new Error('最小値は最大値未満である必要があります');
-    }
-    return Math.random() * (max - min) + min;
-  }
-
-  /**
-   * 指定された確率に基づいて、ランダムに真偽値（true / false）を返す
-   *
-   * @param {number} prob 判定がtrueになる確率（0.0 以上 1.0 以下の数値）
-   * @returns {boolean} 確率を満たした場合はtrue、そうでない場合はfalse
-   *
-   * @example
-   * // 30% の確率で true を返す
-   * const isSuccess = this.withChance(0.3);
-   */
-  private withChance(prob: number): boolean {
-    return Math.random() < prob;
-  }
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly randomService: RandomService,
+  ) {}
 
   /**
    * 指定Garden内の全Plantを取得する
@@ -114,6 +98,22 @@ export class PlantService {
   }
 
   /**
+   * 指定Plantの全エッジを取得する
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {string} plantId - 対象Plantのid
+   * @returns {PlantEdge[]} 主エッジ・副エッジを含む全エッジ配列
+   */
+  async getPlantEdges(
+    tx: Prisma.TransactionClient,
+    plantId: string,
+  ): Promise<PlantEdge[]> {
+    return await tx.plantEdge.findMany({
+      where: { plantId },
+    });
+  }
+
+  /**
    * Plantのノード数と成長段階を更新する
    *
    * @param {Prisma.TransactionClient} tx - トランザクションクライアント
@@ -151,8 +151,8 @@ export class PlantService {
     tx: Prisma.TransactionClient,
     plantId: string,
     edges: CreatedEdge[],
-  ): Promise<void> {
-    if (edges.length === 0) return;
+  ): Promise<PlantEdge[]> {
+    if (edges.length === 0) return [];
 
     // 今回触れるノードに関わるエッジだけを引く
     const nodeIds = [...new Set(edges.flatMap((e) => [e.fromId, e.toId]))];
@@ -178,7 +178,7 @@ export class PlantService {
       return true;
     });
 
-    await tx.plantEdge.createMany({
+    return await tx.plantEdge.createManyAndReturn({
       data: saveEdges,
       skipDuplicates: true,
     });
@@ -245,7 +245,7 @@ export class PlantService {
       const parent: NodeWithChildrens = this.determineGrowthPoint(nodes);
 
       // ノード生成
-      const newNode: PlantNodeResponse = await this.generateNode(
+      const [newNode, mainEdge] = await this.generateNode(
         tx,
         plantId,
         todoId,
@@ -253,6 +253,11 @@ export class PlantService {
       );
 
       newNodes.push(newNode);
+
+      // 延焼時、副エッジ生成
+      if (this.randomService.withChance(P_FIRE)) {
+        await this.forestFire(tx, plantId, newNode.id, mainEdge.id, parent.id);
+      }
     }
     await this.updatePlantGrowth(tx, plantId, count, growthStat.curStage);
 
@@ -281,7 +286,7 @@ export class PlantService {
       throw new Error('成長可能なノードがありません。');
     }
 
-    if (this.withChance(P_LEAF)) {
+    if (this.randomService.withChance(P_LEAF)) {
       /* 葉ノード高さ優先ルート */
       // 葉に近いほど大きい重み。nodesの順に生成
       const maxHeight = Math.max(...heights.values());
@@ -291,7 +296,7 @@ export class PlantService {
       const totalWeight = weights.reduce((sum, w) => sum + w, 0);
 
       // 重みを順に引いて、最初に負になったノードが当選
-      let r = this.random(0, totalWeight);
+      let r = this.randomService.between(0, totalWeight);
       for (let j = 0; j < weights.length; j++) {
         r -= weights[j];
         if (r < 0) return candidates[j];
@@ -302,7 +307,7 @@ export class PlantService {
     }
 
     /* 完全ランダムルート */
-    const rr = Math.floor(this.random(0, candidates.length));
+    const rr = Math.floor(this.randomService.between(0, candidates.length));
     return candidates[rr];
   }
 
@@ -320,7 +325,7 @@ export class PlantService {
     plantId: string,
     todoId: string,
     parent: NodeWithChildrens,
-  ): Promise<PlantNodeResponse> {
+  ): Promise<[newNode: PlantNodeResponse, mainEdge: PlantEdge]> {
     // 色彩
     const hue = Math.max(
       MIN_HUE,
@@ -329,10 +334,10 @@ export class PlantService {
     // 大きさ
     const size = Math.max(
       MIN_SIZE,
-      parent.size * this.random(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
+      parent.size * this.randomService.between(MIN_SIZE_RATIO, MAX_SIZE_RATIO),
     );
-    const angle = this.random(0, Math.PI * 2);
-    const dist = this.random(size + 10, size + 20);
+    const angle = this.randomService.between(0, Math.PI * 2);
+    const dist = this.randomService.between(size + 10, size + 20);
 
     // 子ノードのパラメータは親から継承し、深さに応じて減衰させる
     const node = {
@@ -356,9 +361,139 @@ export class PlantService {
       toId: newNode.id,
       edgeType: EdgeType.SKELETON,
     };
-    await this.createPlantEdges(tx, plantId, [edge]);
+    const mainEdge = (await this.createPlantEdges(tx, plantId, [edge]))[0];
+    if (!mainEdge) throw new Error('主エッジが見つかりませんでした。');
+    return [newNode, mainEdge];
+  }
 
-    return newNode;
+  /**
+   * 着火点から延焼させ、燃えた既存ノードと新ノードを副エッジで繋いで保存する
+   *
+   * 着火点 - 新ノード間の主エッジは延焼判定の対象から除外する。
+   * 1つも燃えなかった場合は何も保存しない
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {string} plantId - 対象Plantのid
+   * @param {string} newNodeId - 今回生成した新ノードのid
+   * @param {string} mainEdgeId - 着火点 - 新ノード間の主エッジのid
+   * @param {string} flashPointId - 着火点（新ノードの親）のid
+   */
+  async forestFire(
+    tx: Prisma.TransactionClient,
+    plantId: string,
+    newNodeId: string,
+    mainEdgeId: string,
+    flashPointId: string,
+  ) {
+    // 全エッジ取得
+    const tempEdges = await this.getPlantEdges(tx, plantId);
+    // 着火点 - 新ノード間エッジ除外
+    const edges = tempEdges.filter((e) => e.id !== mainEdgeId);
+
+    const flashPoint: Map<string, boolean> = new Map([[flashPointId, false]]);
+
+    // 幅優先探索(BFS)的 延焼処理
+    const createSubEdges: CreatedEdge[] = this.burnAdjacent(
+      0,
+      plantId,
+      newNodeId,
+      edges,
+      flashPoint,
+      [],
+    );
+    if (createSubEdges.length !== 0) {
+      await this.createPlantEdges(tx, plantId, createSubEdges);
+    }
+  }
+
+  /**
+   * 受け取ったノードの隣接ノードに延焼判定を行う
+   * 再帰的に呼び出し、幅優先探索(BFS)のように延焼判定を行う
+   *
+   * 延焼確率は深さごとに P_BURN_MAIN / P_BURN_SUB から選ぶ。
+   * 一度副エッジを経由した延焼は、以降の深さでも P_BURN_SUB を使う。
+   * 延焼判定済みのノードは二度判定しない
+   *
+   * @param {number} depth - 現在の深さ（着火点の隣接ノードが0）
+   * @param {string} plantId - 対象Plantのid
+   * @param {string} newNodeId - 副エッジの始点となる新ノードのid
+   * @param {PlantEdge[]} edges - 隣接探索に使うエッジ配列（主エッジ除外済み）
+   * @param {Map<string, boolean>} flashPointIds - 本層の着火点 <ノードid, 副エッジ経由済みflag>
+   * @param {string[]} preBurnedIds - 前層までに延焼判定済みのノードid
+   * @returns {CreatedEdge[]} 本層以降で燃えたノードへの副エッジ配列
+   */
+  burnAdjacent(
+    depth: number,
+    plantId: string,
+    newNodeId: string,
+    edges: PlantEdge[],
+    flashPointIds: Map<string, boolean>,
+    preBurnedIds: string[],
+  ): CreatedEdge[] {
+    // 本層で生成したreturn用の副エッジ
+    const createSubEdges: CreatedEdge[] = [];
+    // 延焼判定済みのノードID
+    const burnedIds: string[] = [...preBurnedIds];
+    // 次層の着火点ノードID <着火点ノードID, 副エッジ経由済みflag>
+    const nextFlashPointIds = new Map<string, boolean>();
+
+    for (const [flashPointId, isFlashViaSub] of flashPointIds) {
+      // 隣接ノードID, エッジ型 取得
+      const adjInfo = edges.flatMap((e) => {
+        if (e.fromId === flashPointId)
+          return [{ adjacentId: e.toId, edgeType: e.edgeType }];
+        if (e.toId === flashPointId)
+          return [{ adjacentId: e.fromId, edgeType: e.edgeType }];
+        return [];
+      });
+
+      for (const { adjacentId, edgeType } of adjInfo) {
+        const isBurned = Boolean(
+          burnedIds.find((burnedId) => burnedId === adjacentId),
+        );
+        if (isBurned) continue; // 一度延焼判定をしているノードの場合
+
+        // 主・副エッジの延焼確率設定
+        const isViaSub = isFlashViaSub || edgeType !== EdgeType.SKELETON;
+        const burnP = isViaSub ? P_BURN_SUB : P_BURN_MAIN;
+
+        if (this.randomService.withChance(burnP[depth] ?? 0)) {
+          // 延焼成功
+
+          // 副エッジ生成
+          createSubEdges.push({
+            plantId,
+            fromId: newNodeId,
+            toId: adjacentId,
+            edgeType: EdgeType.SPREAD,
+          } satisfies CreatedEdge);
+
+          // 延焼が続くため、次の深さの着火点として格納
+          nextFlashPointIds.set(adjacentId, isViaSub);
+        }
+
+        // NOTE: 燃えなかったノードを延焼判定済みとして記憶する。
+        // NOTE: 同深さで二度延焼判定をしないようにする。
+        burnedIds.push(adjacentId);
+      }
+
+      burnedIds.push(flashPointId);
+    }
+
+    // 現在延焼したノードのさらに隣接ノードの延焼判定
+    if (nextFlashPointIds.size !== 0) {
+      const res = this.burnAdjacent(
+        depth + 1,
+        plantId,
+        newNodeId,
+        edges,
+        nextFlashPointIds,
+        burnedIds,
+      );
+      createSubEdges.push(...res);
+    }
+
+    return createSubEdges;
   }
 
   /**
