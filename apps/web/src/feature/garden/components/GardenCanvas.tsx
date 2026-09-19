@@ -43,8 +43,9 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
 };
 
 export const GardenCanvas = () => {
-  const LINECOLOR = "#ffffff";
-  const LINESIZE = 1;
+  const SKELETON_EDGE_COLOR = "#ffffff";
+  const SPREAD_EDGE_COLOR = "#fd6969";
+  const EDGE_WIDTH = 1;
   const SATURATION = 80;
   const BRIGHTNESS = 65;
 
@@ -67,24 +68,32 @@ export const GardenCanvas = () => {
 
           return (
             <g key={plant.id}>
-              {plant.plantNodes.map((n) => {
-                if (n.parentId === null) return null; // ルート除外
-                const from = coordMap.get(n.parentId);
-                const to = coordMap.get(n.id);
+              {plant.plantEdges.map((e) => {
+                // Edge 描画
+                const from = coordMap.get(e.fromId);
+                const to = coordMap.get(e.toId);
+                if (!from || !to) return null;
+                
+                const edgeColor =
+                  e.edgeType === "SKELETON"
+                    ? SKELETON_EDGE_COLOR
+                    : SPREAD_EDGE_COLOR;
+
                 return (
                   <line
-                    key={n.id}
-                    x1={from?.x}
-                    y1={from?.y}
-                    x2={to?.x}
-                    y2={to?.y}
-                    stroke={LINECOLOR}
-                    strokeWidth={LINESIZE}
+                    key={e.id}
+                    x1={from.x}
+                    y1={from.y}
+                    x2={to.x}
+                    y2={to.y}
+                    stroke={edgeColor}
+                    strokeWidth={EDGE_WIDTH}
                   />
                 );
               })}
 
               {Array.from(coordMap.entries()).map(([id, n]) => (
+                // Node 描画
                 <circle
                   key={id}
                   cx={n.x}

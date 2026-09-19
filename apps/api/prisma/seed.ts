@@ -1,5 +1,9 @@
 import { hashPassword } from 'src/auth/hash-password';
-import { GardenPeriod, PrismaClient } from '../generated/prisma/client';
+import {
+  EdgeType,
+  GardenPeriod,
+  PrismaClient,
+} from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 // DB Access setting
@@ -38,13 +42,22 @@ export async function main() {
   const devTodos = await prisma.todo.createManyAndReturn({
     data: [
       {
-        title: 'ランニング',
+        title: 'Task-1',
         targetDuration: 1800,
         userId: devUser.id,
         gardenId: devGarden.id,
       },
       {
-        title: '筋トレ',
+        title: 'Task-2',
+        isCompleted: true,
+        score: 'D',
+        userId: devUser.id,
+        gardenId: devGarden.id,
+        startedAt: new Date(),
+        completedAt: new Date(),
+      },
+      {
+        title: 'Task-3',
         isCompleted: true,
         score: 'D',
         userId: devUser.id,
@@ -70,16 +83,63 @@ export async function main() {
     },
   });
 
-  const devPlantNode = await prisma.plantNode.create({
+  const devRootNode = await prisma.plantNode.create({
     data: {
       x: 0,
       y: 0,
       hue: 120,
       size: 10,
       depth: 0,
-      todoId: devTodos.at(1)?.id,
       plantId: devPlant.id,
     },
+  });
+
+  const [devNode1, devNode2] = await prisma.plantNode.createManyAndReturn({
+    data: [
+      {
+        x: 40,
+        y: -30,
+        hue: 116,
+        size: 8,
+        depth: 1,
+        todoId: devTodos[1].id,
+        parentId: devRootNode.id,
+        plantId: devPlant.id,
+      },
+      {
+        x: 60,
+        y: 20,
+        hue: 116,
+        size: 8,
+        depth: 1,
+        todoId: devTodos[2].id,
+        parentId: devRootNode.id,
+        plantId: devPlant.id,
+      },
+    ],
+  });
+
+  await prisma.plantEdge.createMany({
+    data: [
+      {
+        fromId: devRootNode.id,
+        toId: devNode1.id,
+        edgeType: EdgeType.SKELETON,
+        plantId: devPlant.id,
+      },
+      {
+        fromId: devRootNode.id,
+        toId: devNode2.id,
+        edgeType: EdgeType.SKELETON,
+        plantId: devPlant.id,
+      },
+      {
+        fromId: devNode2.id,
+        toId: devNode1.id,
+        edgeType: EdgeType.SPREAD,
+        plantId: devPlant.id,
+      },
+    ],
   });
 }
 
