@@ -1,14 +1,21 @@
 import { Card } from "../../../components/ui/atoms/Card";
 import { TodoItem } from "./TodoItem";
-import { useCompleteTodo, useStartTodo, useTodos } from "../api/queries";
+import {
+  useCompleteTodo,
+  useCreateTodo,
+  useStartTodo,
+  useTodos,
+} from "../api/queries";
 import { Stack } from "../../../components/ui/atoms/Stack";
 import { Separator } from "../../../components/ui/atoms/Separator";
+import { TodoCreationForm } from "./TodoCreationForm";
 import { Text } from "../../../components/ui/atoms/Text";
 
 export const TodoList = () => {
   const { data: todos, isPending, isError } = useTodos();
   const startMutation = useStartTodo();
   const completeMutation = useCompleteTodo();
+  const createMutation = useCreateTodo();
 
   if (isPending) return <Text>loading...</Text>;
   if (isError) return <Text>Failed to load todos.</Text>;
@@ -31,6 +38,12 @@ export const TodoList = () => {
             <Separator />
           </li>
         ))}
+
+        <li>
+          <Card className="py-2">
+            <TodoCreationForm createMutation={createMutation} />
+          </Card>
+        </li>
       </Stack>
     </Card>
   );
