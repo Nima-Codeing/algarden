@@ -1,5 +1,6 @@
 import type { PlantNodeData } from "@algarden/shared";
 import { useGarden } from "../api/queries";
+import { Text } from "../../../components/ui/atoms/Text";
 
 interface Coordinate {
   x: number;
@@ -51,8 +52,8 @@ export const GardenCanvas = () => {
 
   const { data: garden, isPending, isError } = useGarden();
 
-  if (isPending) return <p>loading...</p>;
-  if (isError) return <p>Failed to load garden.</p>;
+  if (isPending) return <Text>loading...</Text>;
+  if (isError) return <Text>Failed to load garden.</Text>;
 
   return (
     <svg

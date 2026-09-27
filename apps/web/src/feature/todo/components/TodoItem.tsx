@@ -1,3 +1,7 @@
+import { iconMap } from "../../../common/constants/icons";
+import { Text } from "../../../components/ui/atoms/Text";
+import { IconButton } from "../../../components/ui/molecules/IconButton";
+
 type Props = {
   title: string;
   targetDuration: number | null;
@@ -14,31 +18,38 @@ export const TodoItem = ({
   onStart,
 }: Props) => {
   return (
-    <div className="flex text-lg text-bold font-sans mx-4 my-2 border-b-1 border-purple-500 grid grid-cols-4 gap-1">
-      {/* check box */}
-      <div className="m-auto">
-        <input type="checkbox" checked={isCompleted} onChange={onComplete} />
+    <div className="grid grid-cols-16 place-items-center w-full">
+      <div className="flex justify-center col-span-1 w-full">
+        <input
+          type="checkbox"
+          className="w-4 h-4"
+          checked={isCompleted}
+          onChange={onComplete}
+        />
       </div>
-
-      {/* title */}
-      <div className="m-auto">
-        <span>{title}</span>
+      <div className="flex justify-center col-span-8 w-full">
+        <Text className="w-full truncate">{title}</Text>
       </div>
-
-      {/* targetDuration */}
-      <div className="m-auto">
-        <span>{targetDuration ? targetDuration / 60 : "-"}</span>
+      <div className="col-span-4 grid grid-cols-4 place-items-center w-full">
+        <div className="flex justify-center col-span-3 w-full">
+          <Text className="w-full mr-4 text-right">
+            {targetDuration ? targetDuration / 60 : "-"}
+          </Text>
+        </div>
+        <div className="flex justify-center col-span-1 w-full">
+          <Text className="w-full ml-4 text-left">m</Text>
+        </div>
       </div>
-
-      <div className="m-auto">
-        <span className="ml-1">m</span>
-      </div>
-
-      {/* start button */}
-      <div className="m-auto">
-        <span>
-          <button onClick={onStart}>start</button>
-        </span>
+      <div className="col-span-3 grid grid-cols-3 place-items-center w-full">
+        <div className="flex justify-center col-span-1 w-full">
+          <IconButton icon={iconMap["play"]} variant="none" onClick={onStart} />
+        </div>
+        <div className="flex justify-center col-span-1 w-full">
+          {/* Update */}
+        </div>
+        <div className="flex justify-center col-span-1 w-full">
+          {/* Delete */}
+        </div>
       </div>
     </div>
   );
