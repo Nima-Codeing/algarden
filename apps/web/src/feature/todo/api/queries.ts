@@ -3,12 +3,33 @@ import { queryKeys } from "../../../api/queryKeys";
 import { getTodos } from "./getTodos";
 import { completeTodo } from "./completeTodo";
 import { startTodo } from "./startTodo";
+import { createTodo } from "./createTodo";
 
 export const useTodos = () =>
   useQuery({
     queryKey: queryKeys.todos,
     queryFn: getTodos,
   });
+
+export const useCreateTodo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      title,
+      targetDuration,
+    }: {
+      title: string;
+      targetDuration?: number;
+    }) => createTodo({ title, targetDuration }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.todos });
+    },
+    onError: (e) => {
+      alert(e.message || "エラーが発生しました。");
+    },
+  });
+};
 
 export const useStartTodo = () => {
   const queryClient = useQueryClient();
