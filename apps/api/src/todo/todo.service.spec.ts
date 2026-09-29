@@ -13,6 +13,7 @@ describe('TodoService', () => {
       findFirst: jest.fn(),
       findFirstOrThrow: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -39,6 +40,27 @@ describe('TodoService', () => {
     }).compile();
 
     service = module.get<TodoService>(TodoService);
+  });
+
+  describe('update', () => {
+    it('他ユーザーのTodoを更新できないよう、更新条件に userId を含める', async () => {
+      await service.update('todo-1', 'user-1', { title: 'test changed' });
+
+      expect(prismaMock.todo.update).toHaveBeenCalledWith({
+        where: { id: 'todo-1', userId: 'user-1' },
+        data: { title: 'test changed' },
+      });
+    });
+  });
+
+  describe('delete', () => {
+    it('他ユーザーのTodoを削除できないよう、削除条件に userId を含める', async () => {
+      await service.delete('todo-1', 'user-1');
+
+      expect(prismaMock.todo.delete).toHaveBeenCalledWith({
+        where: { id: 'todo-1', userId: 'user-1' },
+      });
+    });
   });
 
   describe('complete', () => {

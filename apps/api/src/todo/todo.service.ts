@@ -108,11 +108,11 @@ export class TodoService {
   /**
    * アクティブなGardenにTodoを作成する
    *
-   * @param {CreateTodoDto} createTodoDto - 作成するTodoの内容
    * @param {string} userId - 作成者のid
+   * @param {CreateTodoDto} createTodoDto - 作成するTodoの内容
    * @returns {Todo} 作成したTodo
    */
-  async create(createTodoDto: CreateTodoDto, userId: string): Promise<Todo> {
+  async create(userId: string, createTodoDto: CreateTodoDto): Promise<Todo> {
     const gardenId = await this.getActiveGardenId(userId);
     return await this.prismaService.todo.create({
       data: {
@@ -126,13 +126,18 @@ export class TodoService {
   /**
    * Todoを更新する
    *
+   * @param {string} id - 更新するTodoのid
+   * @param {string} userId - 更新するユーザのid
    * @param {UpdateTodoDto} updateTodoDto - 更新内容
-   * @param {string} todoId - 更新するTodoのid
    * @returns {Todo} 更新したTodo
    */
-  async update(updateTodoDto: UpdateTodoDto, todoId: string): Promise<Todo> {
+  async update(
+    id: string,
+    userId: string,
+    updateTodoDto: UpdateTodoDto,
+  ): Promise<Todo> {
     return await this.prismaService.todo.update({
-      where: { id: todoId },
+      where: { id, userId },
       data: { ...updateTodoDto },
     });
   }
@@ -165,11 +170,12 @@ export class TodoService {
   /**
    * Todoを削除する
    *
-   * @param {string} todoId - 削除するTodoのid
+   * @param {string} id - 削除するTodoのid
+   * @param {string} userId - 削除するユーザのid
    */
-  async delete(todoId: string): Promise<void> {
+  async delete(id: string, userId: string): Promise<void> {
     await this.prismaService.todo.delete({
-      where: { id: todoId },
+      where: { id, userId },
     });
   }
 
@@ -177,15 +183,15 @@ export class TodoService {
    * Todoのタイマーを起動する
    * 同一Garden内で同時に起動できるタイマーは1つのみ
    *
-   * @param {string} todoId - タイマーを起動するTodoのid
+   * @param {string} id - タイマーを起動するTodoのid
    * @param {string} userId - 所有ユーザーのid
    * @returns {Todo} タイマーを起動したTodo
    * @throws {NotFoundException} 該当Todoが存在しない、または所有ユーザーが一致しない場合
    */
-  async startTimer(todoId: string, userId: string): Promise<Todo> {
+  async startTimer(id: string, userId: string): Promise<Todo> {
     // 指定Todoの取得
     const todo = await this.prismaService.todo.findFirst({
-      where: { id: todoId, userId },
+      where: { id, userId },
     });
     if (!todo) {
       throw new NotFoundException('TODOが見つかりません。');
@@ -208,7 +214,7 @@ export class TodoService {
     try {
       return await this.prismaService.todo.update({
         where: {
-          id: todoId,
+          id,
           startedAt: null,
         },
         data: { startedAt: new Date() },
@@ -226,13 +232,13 @@ export class TodoService {
   /**
    * Todoを完了し、スコアに応じたノードをPlantに追加する
    *
-   * @param {string} todoId - 完了させるTodoのid
+   * @param {string} id - 完了させるTodoのid
    * @param {string} userId - 完了したTodoの所有ユーザーのid
    * @returns {PlantNodeResponse[]} 生成・保存されたノード配列
    */
-  async complete(todoId: string, userId: string): Promise<PlantNodeResponse[]> {
+  async complete(id: string, userId: string): Promise<PlantNodeResponse[]> {
     // 更新用Todo 作成
-    const currentTodo = await this.getTodoInProgress(todoId, userId);
+    const currentTodo = await this.getTodoInProgress(id, userId);
     const completeTodo: CompleteTodo = {
       startedAt: currentTodo.startedAt!,
       completedAt: new Date(),
