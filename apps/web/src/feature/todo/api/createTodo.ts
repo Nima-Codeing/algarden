@@ -1,21 +1,14 @@
 import { apiClient } from "../../../api/client";
+import type { CreateTodoInput } from "../todoSchema";
 
-interface Props {
-  title: string;
-  targetDuration?: number;
-}
-
-export const createTodo = async ({ title, targetDuration }: Props) => {
-  const value = targetDuration ? { title, targetDuration } : { title };
-
+export const createTodo = async (props: CreateTodoInput): Promise<void> => {
   const res = await apiClient("/todos", {
     method: "POST",
-    body: JSON.stringify(value),
+    body: JSON.stringify(props),
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     throw new Error(body?.message ?? "Failed to create todo");
   }
-  return res.json();
 };

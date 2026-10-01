@@ -1,64 +1,48 @@
 import { useState } from "react";
-import type { useCreateTodo } from "../api/queries";
-import { IconButton } from "../../../components/ui/molecules/IconButton";
-import { iconMap } from "../../../common/constants/icons";
-import { z } from "zod";
-import { RangeSlider } from "../../../components/ui/molecules/RangeSlider";
+
 import { Text } from "../../../components/ui/atoms/Text";
+import { IconButton } from "../../../components/ui/molecules/IconButton";
+import { RangeSlider } from "../../../components/ui/molecules/RangeSlider";
+import { iconMap } from "../../../common/constants/icons.constant";
+import { createTodoSchema } from "../todoSchema";
+import type { useCreateTodo } from "../api/queries";
 
 const DEFAULT_MINUTES = "60";
 const TEN_MINUTES = 10;
 const EIGHT_HOURS = 480;
 
-const todoSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1, "タスク名を設定してください。")
-    .max(30, "タスク名を30文字以下で設定してください。"),
-  targetDuration: z.preprocess(
-    (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
-    z
-      .string()
-      .regex(/^\d+$/, "設定時間には半角数字のみ入力してください。")
-      .transform((val) => Number(val) * 60) // 分 -> 秒
-      .pipe(
-        z
-          .number()
-          .min(600, "最低設定時間は10分以上です。")
-          .max(28800, "最大設定時間は480分(8時間)までです。"),
-      )
-      .optional(),
-  ),
-});
-
 type TodoCreationFormProps = {
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   createMutation: ReturnType<typeof useCreateTodo>;
 };
 
-export const TodoCreationForm = ({ createMutation }: TodoCreationFormProps) => {
-  const [isCreating, setIsCreating] = useState<boolean>(false);
+export const TodoCreationForm = ({
+  isOpen,
+  onOpen,
+  onClose,
+  createMutation,
+}: TodoCreationFormProps) => {
   const [title, setTitle] = useState<string>("");
-  const [targetDuration, setTargetDuration] = useState<string>("");
-
-  const isTime = targetDuration !== "";
+  const [durationMinutes, setDurationMinutes] = useState<string>("");
+  const isTime = durationMinutes !== "";
 
   const handleTimeSwitch = () =>
-    setTargetDuration(isTime ? "" : DEFAULT_MINUTES);
-
-  const handleCreateSwitch = () => setIsCreating(!isCreating);
-
+    setDurationMinutes(isTime ? "" : DEFAULT_MINUTES);
   const handleSubmit = (e: React.SubmitEvent) => {
     // ページのリロードを止める
     e.preventDefault();
 
     // 入力値チェック
-    const res = todoSchema.safeParse({ title, targetDuration });
+    const res = createTodoSchema.safeParse({
+      title,
+      targetDuration: durationMinutes,
+    });
     if (!res.success) {
       const errorMessages = res.error.issues
         .map((err) => err.message)
         .join("\n");
-
       alert(errorMessages);
       return;
     }
@@ -66,24 +50,19 @@ export const TodoCreationForm = ({ createMutation }: TodoCreationFormProps) => {
     createMutation.mutate(res.data, {
       onSuccess: () => {
         setTitle("");
-        setTargetDuration("");
-        setIsCreating(false);
+        setDurationMinutes("");
+        onClose();
       },
     });
   };
 
-  if (!isCreating) {
+  if (!isOpen) {
     return (
       <div className="flex justify-center">
-        <IconButton
-          icon={iconMap["plus"]}
-          variant="circle"
-          onClick={handleCreateSwitch}
-        />
+        <IconButton icon={iconMap["plus"]} variant="circle" onClick={onOpen} />
       </div>
     );
   }
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -94,7 +73,7 @@ export const TodoCreationForm = ({ createMutation }: TodoCreationFormProps) => {
           icon={iconMap["minus"]}
           iconClassName="stroke-[3]"
           variant="none"
-          onClick={handleCreateSwitch}
+          onClick={onClose}
         />
       </div>
       <div className="col-span-10 grid grid-cols-10 place-items-center w-full">
@@ -154,8 +133,8 @@ export const TodoCreationForm = ({ createMutation }: TodoCreationFormProps) => {
             title="目標時間設定"
             min={TEN_MINUTES}
             max={EIGHT_HOURS}
-            value={targetDuration}
-            onChange={setTargetDuration}
+            value={durationMinutes}
+            onChange={setDurationMinutes}
           />
         </div>
       )}
