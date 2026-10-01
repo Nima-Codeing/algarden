@@ -1,22 +1,24 @@
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Todo, TodoScore } from 'generated/prisma/client';
+
 import { PrismaService } from 'src/prisma/prisma.service';
+import { GardenService } from 'src/garden/garden.service';
+import { PlantService } from 'src/plant/plant.service';
+import { PlantNodeResponse } from 'src/plant/types/plant.types';
 import { CreateTodoDto } from './dto/create-todo.dto';
-import { UpdateTodoDto } from './dto/update-todo.dto';
+import { UpdateTodoTitleDto } from './dto/update-todo-title.dto';
+import { UpdateTodoDurationDto } from './dto/update-todo-duration.dto';
+import { Prisma, Todo, TodoScore } from 'generated/prisma/client';
 import {
   CompleteTodo,
   Score,
   TodoResponse,
   todoSelect,
 } from './types/todo.types';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-import { GardenService } from 'src/garden/garden.service';
-import { PlantService } from 'src/plant/plant.service';
-import { PlantNodeResponse } from 'src/plant/types/plant.types';
 
 @Injectable()
 export class TodoService {
@@ -124,21 +126,50 @@ export class TodoService {
   }
 
   /**
-   * Todoを更新する
+   * Todoのタスク名を更新する
    *
    * @param {string} id - 更新するTodoのid
    * @param {string} userId - 更新するユーザのid
-   * @param {UpdateTodoDto} updateTodoDto - 更新内容
+   * @param {UpdateTodoTitleDto} dto - 更新タイトル名
    * @returns {Todo} 更新したTodo
    */
-  async update(
+  async updateTitle(
     id: string,
     userId: string,
-    updateTodoDto: UpdateTodoDto,
+    dto: UpdateTodoTitleDto,
   ): Promise<Todo> {
     return await this.prismaService.todo.update({
-      where: { id, userId },
-      data: { ...updateTodoDto },
+      where: {
+        id,
+        userId,
+        completedAt: null, // 完了後変更不可
+      },
+      data: { title: dto.title },
+    });
+  }
+
+  /**
+   * Todoの目標時間を更新する
+   *
+   * @param {string} id - 更新するTodoのid
+   * @param {string} userId - 更新するユーザのid
+   * @param {UpdateTodoDurationDto} dto - 更新目標時間
+   * @returns {Todo} 更新したTodo
+   */
+  async updateTargetDuration(
+    id: string,
+    userId: string,
+    dto: UpdateTodoDurationDto,
+  ): Promise<Todo> {
+    return await this.prismaService.todo.update({
+      where: {
+        id,
+        userId,
+        // 開始後変更不可
+        startedAt: null,
+        completedAt: null,
+      },
+      data: { targetDuration: dto.targetDuration },
     });
   }
 
