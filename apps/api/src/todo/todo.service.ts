@@ -131,21 +131,28 @@ export class TodoService {
    * @param {string} id - 更新するTodoのid
    * @param {string} userId - 更新するユーザのid
    * @param {UpdateTodoTitleDto} dto - 更新タイトル名
-   * @returns {Todo} 更新したTodo
+   * @throws {NotFoundException} 該当Todoが存在しない
    */
   async updateTitle(
     id: string,
     userId: string,
     dto: UpdateTodoTitleDto,
-  ): Promise<Todo> {
-    return await this.prismaService.todo.update({
-      where: {
-        id,
-        userId,
-        completedAt: null, // 完了後変更不可
-      },
-      data: { title: dto.title },
-    });
+  ): Promise<void> {
+    try {
+      await this.prismaService.todo.update({
+        where: {
+          id,
+          userId,
+          completedAt: null, // 完了後変更不可
+        },
+        data: { title: dto.title },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('変更できるTODOが見つかりませんでした。');
+      }
+      throw e;
+    }
   }
 
   /**
@@ -154,23 +161,30 @@ export class TodoService {
    * @param {string} id - 更新するTodoのid
    * @param {string} userId - 更新するユーザのid
    * @param {UpdateTodoDurationDto} dto - 更新目標時間
-   * @returns {Todo} 更新したTodo
+   * @throws {NotFoundException} 該当Todoが存在しない
    */
   async updateTargetDuration(
     id: string,
     userId: string,
     dto: UpdateTodoDurationDto,
-  ): Promise<Todo> {
-    return await this.prismaService.todo.update({
-      where: {
-        id,
-        userId,
-        // 開始後変更不可
-        startedAt: null,
-        completedAt: null,
-      },
-      data: { targetDuration: dto.targetDuration },
-    });
+  ): Promise<void> {
+    try {
+      await this.prismaService.todo.update({
+        where: {
+          id,
+          userId,
+          // 開始後変更不可
+          startedAt: null,
+          completedAt: null,
+        },
+        data: { targetDuration: dto.targetDuration },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('変更できるTODOが見つかりませんでした。');
+      }
+      throw e;
+    }
   }
 
   /**
@@ -203,11 +217,23 @@ export class TodoService {
    *
    * @param {string} id - 削除するTodoのid
    * @param {string} userId - 削除するユーザのid
+   * @throws {NotFoundException} 該当Todoが存在しない
    */
   async delete(id: string, userId: string): Promise<void> {
-    await this.prismaService.todo.delete({
-      where: { id, userId },
-    });
+    try {
+      await this.prismaService.todo.delete({
+        where: {
+          id,
+          userId,
+          completedAt: null,
+        },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('削除できるTODOが見つかりませんでした。');
+      }
+      throw e;
+    }
   }
 
   /**

@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { GardenService } from 'src/garden/garden.service';
 import { PlantService } from 'src/plant/plant.service';
 import { NotFoundException } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 describe('TodoService', () => {
   let service: TodoService;
@@ -43,7 +44,7 @@ describe('TodoService', () => {
   });
 
   describe('updateTitle', () => {
-    it('他ユーザーのTodoを更新できないよう、更新条件に userId を含める', async () => {
+    it('他ユーザーのTodoを更新できないよう、更新条件にuserIdを含める', async () => {
       await service.updateTitle('todo-1', 'user-1', {
         title: 'test name changed',
       });
@@ -56,7 +57,7 @@ describe('TodoService', () => {
   });
 
   describe('updateTargetDuration', () => {
-    it('開始後に目標時間を変更できないよう、更新条件に startedAt を含める', async () => {
+    it('開始後に目標時間を変更できないよう、更新条件にstartedAtを含める', async () => {
       await service.updateTargetDuration('todo-1', 'user-1', {
         targetDuration: 600,
       });
@@ -74,12 +75,25 @@ describe('TodoService', () => {
   });
 
   describe('delete', () => {
-    it('他ユーザーのTodoを削除できないよう、削除条件に userId を含める', async () => {
+    it('他ユーザー・完了済のTodoを削除できないよう、削除条件にuserIdとcompletedAtを含める', async () => {
       await service.delete('todo-1', 'user-1');
 
       expect(prismaMock.todo.delete).toHaveBeenCalledWith({
-        where: { id: 'todo-1', userId: 'user-1' },
+        where: { id: 'todo-1', userId: 'user-1', completedAt: null },
       });
+    });
+
+    it('条件に合うTodoが無いとき、NotFoundExceptionに変換する', async () => {
+      prismaMock.todo.delete.mockRejectedValueOnce(
+        new PrismaClientKnownRequestError('Record to delete does not exist.', {
+          code: 'P2025',
+          clientVersion: 'test',
+        }),
+      );
+
+      await expect(service.delete('todo-1', 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

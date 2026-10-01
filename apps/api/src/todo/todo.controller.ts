@@ -43,8 +43,8 @@ export class TodoController {
     @Param('id') id: string,
     @Body() dto: UpdateTodoTitleDto,
     @CurrentUser('id') userId: string,
-  ): Promise<Todo> {
-    return await this.todoService.updateTitle(id, userId, dto);
+  ): Promise<void> {
+    await this.todoService.updateTitle(id, userId, dto);
   }
 
   @Put(':id/target-duration')
@@ -52,8 +52,8 @@ export class TodoController {
     @Param('id') id: string,
     @Body() dto: UpdateTodoDurationDto,
     @CurrentUser('id') userId: string,
-  ): Promise<Todo> {
-    return await this.todoService.updateTargetDuration(id, userId, dto);
+  ): Promise<void> {
+    await this.todoService.updateTargetDuration(id, userId, dto);
   }
 
   @Delete(':id')
