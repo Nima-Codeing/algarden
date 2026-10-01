@@ -10,6 +10,7 @@ import { TodoCreationForm } from "./TodoCreationForm";
 import {
   useCompleteTodo,
   useCreateTodo,
+  useDeleteTodo,
   useStartTodo,
   useTodos,
   useUpdateTodoTargetDuration,
@@ -29,6 +30,7 @@ export const TodoList = () => {
   const createMutation = useCreateTodo();
   const titleMutation = useUpdateTodoTitle();
   const durationMutation = useUpdateTodoTargetDuration();
+  const deleteMutation = useDeleteTodo();
 
   const [activeRow, setActiveRow] = useState<ActiveRow>({ type: "none" });
 
@@ -62,6 +64,12 @@ export const TodoList = () => {
                   onComplete={() => completeMutation.mutate(todo.id)}
                   onStart={() => startMutation.mutate(todo.id)}
                   onEditMode={() => openEdit(todo.id)}
+                  onDelete={() => {
+                    if (!window.confirm(`「${todo.title}」を削除しますか？`))
+                      return;
+                    close();
+                    deleteMutation.mutate(todo.id);
+                  }}
                 />
               )}
             </Card>

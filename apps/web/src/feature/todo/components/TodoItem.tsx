@@ -9,6 +9,7 @@ type Props = {
   onComplete: () => void;
   onStart: () => void;
   onEditMode: () => void;
+  onDelete: () => void;
 };
 
 export const TodoItem = ({
@@ -18,6 +19,7 @@ export const TodoItem = ({
   onComplete,
   onStart,
   onEditMode,
+  onDelete,
 }: Props) => {
   return (
     <div className="grid grid-cols-16 place-items-center w-full">
@@ -61,7 +63,12 @@ export const TodoItem = ({
           />
         </div>
         <div className="flex justify-center col-span-1 w-full">
-          {/* Delete */}
+          <IconButton
+            icon={iconMap[isCompleted ? "trashOff" : "trash"]}
+            variant="none"
+            onClick={onDelete}
+            disabled={isCompleted}
+          />
         </div>
       </div>
     </div>

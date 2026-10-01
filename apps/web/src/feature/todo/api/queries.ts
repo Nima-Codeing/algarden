@@ -6,6 +6,7 @@ import { startTodo } from "./startTodo";
 import { createTodo } from "./createTodo";
 import type { TodoData } from "@algarden/shared";
 import { updateTodoTargetDuration, updateTodoTitle } from "./updateTodo";
+import { deleteTodo } from "./deleteTodo";
 
 const toTodoView = (todos: TodoData[]) =>
   todos.map((todo) => ({
@@ -56,6 +57,20 @@ export const useUpdateTodoTargetDuration = () => {
 
   return useMutation({
     mutationFn: updateTodoTargetDuration,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.todos });
+    },
+    onError: (e) => {
+      alert(e.message || "エラーが発生しました。");
+    },
+  });
+};
+
+export const useDeleteTodo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteTodo,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.todos });
     },
