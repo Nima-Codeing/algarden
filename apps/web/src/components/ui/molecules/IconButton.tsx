@@ -37,6 +37,7 @@ export const IconButton = ({
       onClick={onClick}
       className={cn(
         "flex items-center justify-center min-w-[20px] min-h-[20px]",
+        "disabled:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed",
         className,
         variants[variant],
       )}
