@@ -1,21 +1,23 @@
-import { iconMap } from "../../../common/constants/icons";
 import { Text } from "../../../components/ui/atoms/Text";
 import { IconButton } from "../../../components/ui/molecules/IconButton";
+import { iconMap } from "../../../common/constants/icons.constant";
 
 type Props = {
   title: string;
-  targetDuration: number | null;
+  targetDurationMinutes: number | null;
   isCompleted: boolean;
   onComplete: () => void;
   onStart: () => void;
+  onEditMode: () => void;
 };
 
 export const TodoItem = ({
   title,
-  targetDuration,
+  targetDurationMinutes,
   isCompleted,
   onComplete,
   onStart,
+  onEditMode,
 }: Props) => {
   return (
     <div className="grid grid-cols-16 place-items-center w-full">
@@ -24,6 +26,7 @@ export const TodoItem = ({
           type="checkbox"
           className="w-4 h-4"
           checked={isCompleted}
+          disabled={isCompleted}
           onChange={onComplete}
         />
       </div>
@@ -33,7 +36,7 @@ export const TodoItem = ({
       <div className="col-span-4 grid grid-cols-4 place-items-center w-full">
         <div className="flex justify-center col-span-3 w-full">
           <Text className="w-full mr-4 text-right">
-            {targetDuration ? targetDuration / 60 : "-"}
+            {targetDurationMinutes || "-"}
           </Text>
         </div>
         <div className="flex justify-center col-span-1 w-full">
@@ -42,10 +45,20 @@ export const TodoItem = ({
       </div>
       <div className="col-span-3 grid grid-cols-3 place-items-center w-full">
         <div className="flex justify-center col-span-1 w-full">
-          <IconButton icon={iconMap["play"]} variant="none" onClick={onStart} />
+          <IconButton
+            icon={iconMap[isCompleted ? "playOff" : "play"]}
+            variant="none"
+            onClick={onStart}
+            disabled={isCompleted}
+          />
         </div>
         <div className="flex justify-center col-span-1 w-full">
-          {/* Update */}
+          <IconButton
+            icon={iconMap[isCompleted ? "editOff" : "edit"]}
+            variant="none"
+            onClick={onEditMode}
+            disabled={isCompleted}
+          />
         </div>
         <div className="flex justify-center col-span-1 w-full">
           {/* Delete */}

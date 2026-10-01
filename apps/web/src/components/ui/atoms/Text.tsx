@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
-import { cn } from "../../../common/utils/cn";
+
+import { cn } from "../../../common/utils/cn.util";
 
 type TextProps<T extends ElementType> = {
   as?: T;

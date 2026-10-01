@@ -42,13 +42,33 @@ describe('TodoService', () => {
     service = module.get<TodoService>(TodoService);
   });
 
-  describe('update', () => {
+  describe('updateTitle', () => {
     it('他ユーザーのTodoを更新できないよう、更新条件に userId を含める', async () => {
-      await service.update('todo-1', 'user-1', { title: 'test changed' });
+      await service.updateTitle('todo-1', 'user-1', {
+        title: 'test name changed',
+      });
 
       expect(prismaMock.todo.update).toHaveBeenCalledWith({
-        where: { id: 'todo-1', userId: 'user-1' },
-        data: { title: 'test changed' },
+        where: { id: 'todo-1', userId: 'user-1', completedAt: null },
+        data: { title: 'test name changed' },
+      });
+    });
+  });
+
+  describe('updateTargetDuration', () => {
+    it('開始後に目標時間を変更できないよう、更新条件に startedAt を含める', async () => {
+      await service.updateTargetDuration('todo-1', 'user-1', {
+        targetDuration: 600,
+      });
+
+      expect(prismaMock.todo.update).toHaveBeenCalledWith({
+        where: {
+          id: 'todo-1',
+          userId: 'user-1',
+          startedAt: null,
+          completedAt: null,
+        },
+        data: { targetDuration: 600 },
       });
     });
   });

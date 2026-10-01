@@ -6,16 +6,19 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
-import { TodoService } from './todo.service';
-import { CreateTodoDto } from './dto/create-todo.dto';
-import { UpdateTodoDto } from './dto/update-todo.dto';
 import { AuthGuard } from '@nestjs/passport';
+
+import { TodoService } from './todo.service';
 import { TodoResponse } from './types/todo.types';
-import { Todo } from 'generated/prisma/client';
 import { PlantNodeResponse } from 'src/plant/types/plant.types';
+import { CreateTodoDto } from './dto/create-todo.dto';
+import { UpdateTodoTitleDto } from './dto/update-todo-title.dto';
+import { UpdateTodoDurationDto } from './dto/update-todo-duration.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { Todo } from 'generated/prisma/client';
 
 @Controller('todos')
 @UseGuards(AuthGuard('jwt'))
@@ -35,13 +38,22 @@ export class TodoController {
     return await this.todoService.create(userId, createTodoDto);
   }
 
-  @Patch(':id')
-  async update(
+  @Put(':id/title')
+  async updateTitle(
     @Param('id') id: string,
-    @Body() updateTodoDto: UpdateTodoDto,
+    @Body() dto: UpdateTodoTitleDto,
     @CurrentUser('id') userId: string,
   ): Promise<Todo> {
-    return await this.todoService.update(id, userId, updateTodoDto);
+    return await this.todoService.updateTitle(id, userId, dto);
+  }
+
+  @Put(':id/target-duration')
+  async updateTargetDuration(
+    @Param('id') id: string,
+    @Body() dto: UpdateTodoDurationDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<Todo> {
+    return await this.todoService.updateTargetDuration(id, userId, dto);
   }
 
   @Delete(':id')

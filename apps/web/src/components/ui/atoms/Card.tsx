@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { cn } from "../../../common/utils/cn";
+
+import { cn } from "../../../common/utils/cn.util";
 
 const variants = {
   rounded: "rounded-lg",

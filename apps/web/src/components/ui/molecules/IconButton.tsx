@@ -1,7 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import { Button } from "../atoms/Button";
+
 import { Icon } from "../atoms/Icon";
-import { cn } from "../../../common/utils/cn";
+import { Button } from "../atoms/Button";
+import { cn } from "../../../common/utils/cn.util";
 
 const variants = {
   circle: "rounded-full p-2",
@@ -36,6 +37,7 @@ export const IconButton = ({
       onClick={onClick}
       className={cn(
         "flex items-center justify-center min-w-[20px] min-h-[20px]",
+        "disabled:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed",
         className,
         variants[variant],
       )}
