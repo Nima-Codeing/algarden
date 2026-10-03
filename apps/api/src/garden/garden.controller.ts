@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GardenService } from './garden.service';
-import { Garden } from 'generated/prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { PlantSeedDto } from './dto/plant-seed.dto';
@@ -16,11 +15,6 @@ export class GardenController {
     @CurrentUser('id') userId: string,
   ): Promise<GardenWithPlants> {
     return await this.gardenService.getActive(userId);
-  }
-
-  @Post('reset')
-  async reset(@CurrentUser('id') userId: string): Promise<Garden> {
-    return await this.gardenService.reset(userId);
   }
 
   @Post(':id/plant')

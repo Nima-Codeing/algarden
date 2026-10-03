@@ -4,64 +4,35 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-import { Garden, Plant, PlantNode } from 'generated/prisma/client';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PlantSeedDto } from './dto/plant-seed.dto';
+import { Plant, PlantNode } from 'generated/prisma/client';
 import { gardenSelect, GardenWithPlants } from './types/garden.types';
+import { DateService } from 'src/common/date/date.service';
 
 @Injectable()
 export class GardenService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly dateService: DateService,
+  ) {}
 
   // ユーザーのアクティブなGardenを取得する
   async getActive(userId: string): Promise<GardenWithPlants> {
+    const endAt = this.dateService.getNextMonthFirstDayUTC();
+
     const garden = await this.prismaService.garden.findFirst({
       select: gardenSelect,
       where: {
         userId,
-        isActive: true,
+        endAt,
       },
     });
     if (!garden) {
       throw new NotFoundException('アクティブなGardenが見つかりません。');
     }
     return garden;
-  }
-
-  async reset(userId: string): Promise<Garden> {
-    // 現在のガーデンを閉じる
-    try {
-      await this.prismaService.garden.updateMany({
-        where: {
-          userId,
-          isActive: true,
-        },
-        data: {
-          isActive: false,
-          endedAt: new Date(),
-        },
-      });
-    } catch (e) {
-      if (e instanceof PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new BadRequestException('育成中のガーデンがありません。');
-        }
-      }
-      throw e;
-    }
-
-    // 新しいガーデンを作成
-    return await this.prismaService.garden.create({
-      data: {
-        userId,
-        periodType: 'MONTHLY',
-        plantedSeeds: {
-          create: {},
-        },
-      },
-      include: { plantedSeeds: true },
-    });
   }
 
   async plantSeed(
