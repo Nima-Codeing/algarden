@@ -41,7 +41,19 @@ export async function main() {
   const devTodos = await prisma.todo.createManyAndReturn({
     data: [
       {
-        title: 'Task-1',
+        title: 'Task-A',
+        targetDuration: 1800,
+        userId: devUser.id,
+        gardenId: devGarden.id,
+      },
+      {
+        title: 'Task-B',
+        targetDuration: 1800,
+        userId: devUser.id,
+        gardenId: devGarden.id,
+      },
+      {
+        title: 'Task-C',
         targetDuration: 1800,
         userId: devUser.id,
         gardenId: devGarden.id,
