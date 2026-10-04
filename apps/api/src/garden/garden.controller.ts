@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { GardenService } from './garden.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { PlantSeedDto } from './dto/plant-seed.dto';
 import { GardenWithPlants } from './types/garden.types';
 
 @Controller('gardens')
@@ -15,14 +14,5 @@ export class GardenController {
     @CurrentUser('id') userId: string,
   ): Promise<GardenWithPlants> {
     return await this.gardenService.getActive(userId);
-  }
-
-  @Post(':id/plant')
-  async plant(
-    @CurrentUser('id') userId: string,
-    @Param('id') gardenId: string,
-    @Body() plantSeedDto: PlantSeedDto,
-  ) {
-    return await this.gardenService.plantSeed(userId, gardenId, plantSeedDto);
   }
 }
