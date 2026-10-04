@@ -4,23 +4,81 @@ import { CreatedEdge, NodeWithChildIds } from './types/plant.types';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EdgeType, PlantEdge, Prisma } from 'generated/prisma/client';
 import { RandomService } from 'src/common/random/random.service';
-import { P_BURN_MAIN, P_BURN_SUB } from './plant.constants';
+import {
+  BASE_HUE,
+  P_BURN_MAIN,
+  P_BURN_SUB,
+  ROOT_SIZE,
+} from './plant.constants';
+import { DateService } from 'src/common/date/date.service';
 
 describe('PlantService', () => {
   let service: PlantService;
   let randomService: RandomService;
 
+  const DATE_NOW = new Date('2026-11-01T00:00:00Z');
+
+  const prismaMock = {
+    seed: {
+      update: jest.fn(),
+    },
+    plant: {
+      create: jest.fn(),
+    },
+  };
+  const randomMock = {
+    withChance: jest.fn(),
+  };
+  const dateMock = {
+    now: jest.fn().mockImplementation(() => DATE_NOW),
+  };
+
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PlantService,
-        { provide: PrismaService, useValue: {} },
-        { provide: RandomService, useValue: { withChance: () => {} } },
+        { provide: PrismaService, useValue: prismaMock },
+        { provide: RandomService, useValue: randomMock },
+        { provide: DateService, useValue: dateMock },
       ],
     }).compile();
 
     service = module.get<PlantService>(PlantService);
     randomService = module.get<RandomService>(RandomService);
+  });
+
+  describe('plantRoot', () => {
+    it('指定座標に種を植え、ルートノードは原点（相対座標）に作る', async () => {
+      await service.plantRoot(
+        prismaMock as unknown as Prisma.TransactionClient,
+        'g1',
+        's1',
+        100,
+        50,
+      );
+
+      expect(prismaMock.seed.update).toHaveBeenCalledWith({
+        where: { id: 's1' },
+        data: { x: 100, y: 50, isPlanted: true, plantedAt: DATE_NOW },
+      });
+      expect(prismaMock.plant.create).toHaveBeenCalledWith({
+        data: {
+          gardenId: 'g1',
+          seedId: 's1',
+          plantNodes: {
+            create: {
+              x: 0,
+              y: 0,
+              hue: BASE_HUE,
+              size: ROOT_SIZE,
+              depth: 0,
+            },
+          },
+        },
+      });
+    });
   });
 
   describe('calcHeights', () => {

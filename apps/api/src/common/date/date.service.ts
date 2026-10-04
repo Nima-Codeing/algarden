@@ -6,4 +6,9 @@ export class DateService {
   getNextMonthFirstDayUTC(now: Date = new Date()): Date {
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   }
+
+  /** 現在日付を返す */
+  now(): Date {
+    return new Date();
+  }
 }

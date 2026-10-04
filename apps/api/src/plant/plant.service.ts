@@ -28,14 +28,17 @@ import {
   P_BURN_SUB,
   P_FIRE,
   P_LEAF,
+  ROOT_SIZE,
 } from './plant.constants';
 import { RandomService } from 'src/common/random/random.service';
+import { DateService } from 'src/common/date/date.service';
 
 @Injectable()
 export class PlantService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly randomService: RandomService,
+    private readonly dateService: DateService,
   ) {}
 
   /**
@@ -213,6 +216,45 @@ export class PlantService {
       curStage,
       isPromotion,
     } satisfies GrowthStageResult;
+  }
+
+  /**
+   * Plantを生成し、Seedを植えてRootNodeを生成
+   *
+   * @param {Prisma.TransactionClient} tx
+   * @param {string} gardenId - 植える庭のID
+   * @param {string} seedId - 植える種のID
+   * @param {number} x - 植える種の初期 x座標
+   * @param {number} y - 植える種の初期 y座標
+   */
+  async plantRoot(
+    tx: Prisma.TransactionClient,
+    gardenId: string,
+    seedId: string,
+    x: number = 0,
+    y: number = 0,
+  ) {
+    await tx.seed.update({
+      where: { id: seedId },
+      data: { x, y, isPlanted: true, plantedAt: this.dateService.now() },
+    });
+
+    await tx.plant.create({
+      data: {
+        gardenId,
+        seedId,
+        plantNodes: {
+          create: {
+            // NOTE: 座標 plantはseedの相対座標のため固定値
+            x: 0,
+            y: 0,
+            hue: BASE_HUE,
+            size: ROOT_SIZE,
+            depth: 0,
+          },
+        },
+      },
+    });
   }
 
   /**
