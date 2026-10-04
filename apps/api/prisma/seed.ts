@@ -1,10 +1,8 @@
-import { hashPassword } from 'src/auth/hash-password';
-import {
-  EdgeType,
-  GardenPeriod,
-  PrismaClient,
-} from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+
+import { hashPassword } from 'src/auth/hash-password';
+import { DateService } from 'src/common/date/date.service';
+import { EdgeType, PrismaClient } from '../generated/prisma/client';
 
 // DB Access setting
 const adapter = new PrismaPg({
@@ -32,17 +30,30 @@ export async function main() {
     },
   });
 
+  const nextMonthFirstDay = new DateService().getNextMonthFirstDayUTC();
   const devGarden = await prisma.garden.create({
     data: {
-      periodType: GardenPeriod.MONTHLY,
       userId: devUser.id,
+      endAt: nextMonthFirstDay,
     },
   });
 
   const devTodos = await prisma.todo.createManyAndReturn({
     data: [
       {
-        title: 'Task-1',
+        title: 'Task-A',
+        targetDuration: 1800,
+        userId: devUser.id,
+        gardenId: devGarden.id,
+      },
+      {
+        title: 'Task-B',
+        targetDuration: 1800,
+        userId: devUser.id,
+        gardenId: devGarden.id,
+      },
+      {
+        title: 'Task-C',
         targetDuration: 1800,
         userId: devUser.id,
         gardenId: devGarden.id,

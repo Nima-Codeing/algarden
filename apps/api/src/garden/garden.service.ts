@@ -1,115 +1,72 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-import { Garden, Plant, PlantNode } from 'generated/prisma/client';
+import { Injectable } from '@nestjs/common';
+
+import { DateService } from 'src/common/date/date.service';
+import { PlantService } from 'src/plant/plant.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PlantSeedDto } from './dto/plant-seed.dto';
 import { gardenSelect, GardenWithPlants } from './types/garden.types';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 @Injectable()
 export class GardenService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly plantService: PlantService,
+    private readonly dateService: DateService,
+  ) {}
 
-  // ユーザーのアクティブなGardenを取得する
+  /**
+   * ユーザーのアクティブなGardenを取得
+   * 見つからない場合、新規作成
+   *
+   * @param userId
+   * @returns
+   */
   async getActive(userId: string): Promise<GardenWithPlants> {
-    const garden = await this.prismaService.garden.findFirst({
-      select: gardenSelect,
-      where: {
-        userId,
-        isActive: true,
-      },
-    });
-    if (!garden) {
-      throw new NotFoundException('アクティブなGardenが見つかりません。');
-    }
-    return garden;
-  }
+    // Active Garden 有無確認
+    const endAt = this.dateService.getNextMonthFirstDayUTC();
 
-  async reset(userId: string): Promise<Garden> {
-    // 現在のガーデンを閉じる
+    const found = await this.prismaService.garden.findUnique({
+      where: { userId_endAt: { userId, endAt } },
+      select: gardenSelect,
+    });
+    if (found) return found;
+
     try {
-      await this.prismaService.garden.updateMany({
-        where: {
-          userId,
-          isActive: true,
-        },
-        data: {
-          isActive: false,
-          endedAt: new Date(),
-        },
+      // ない場合、新規作成
+      return await this.prismaService.$transaction(async (tx) => {
+        const garden = await tx.garden.create({
+          data: {
+            userId,
+            endAt,
+          },
+        });
+
+        // シード生成
+        const seed = await tx.seed.create({
+          data: { gardenId: garden.id },
+        });
+
+        // シードをガーデンに植える
+        await this.plantService.plantRoot(tx, garden.id, seed.id, 0, 0);
+
+        return await tx.garden.findUniqueOrThrow({
+          where: { id: garden.id },
+          select: gardenSelect,
+        });
       });
     } catch (e) {
-      if (e instanceof PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new BadRequestException('育成中のガーデンがありません。');
-        }
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
+        // 一意制約エラーの場合、再取得
+        return await this.prismaService.garden.findUniqueOrThrow({
+          where: { userId_endAt: { userId, endAt } },
+          select: gardenSelect,
+        });
       }
+
+      console.error(
+        'An error occurred while retrieving or creating Active Garden.',
+      );
       throw e;
     }
-
-    // 新しいガーデンを作成
-    return await this.prismaService.garden.create({
-      data: {
-        userId,
-        periodType: 'MONTHLY',
-        plantedSeeds: {
-          create: {},
-        },
-      },
-      include: { plantedSeeds: true },
-    });
-  }
-
-  async plantSeed(
-    userId: string,
-    gardenId: string,
-    { seedId, x, y }: PlantSeedDto,
-  ): Promise<Plant & { plantNodes: PlantNode[] }> {
-    // オーナーシップ検証
-    const garden = await this.prismaService.garden.findFirst({
-      where: { id: gardenId, userId },
-    });
-
-    if (!garden) throw new ForbiddenException();
-
-    const newPlant = await this.prismaService.$transaction(async (tx) => {
-      const seed = await tx.seed.findUnique({ where: { id: seedId } });
-      if (!seed) throw new NotFoundException('種が見つかりません。');
-      if (seed.isPlanted)
-        throw new BadRequestException('この種はすでに植えられています。');
-
-      await tx.seed.update({
-        where: { id: seedId },
-        data: { x, y, isPlanted: true, plantedAt: new Date() },
-      });
-
-      const plant = await tx.plant.create({
-        data: { gardenId, seedId: seed.id },
-      });
-
-      // ルートノード生成
-      await tx.plantNode.create({
-        data: {
-          x: 0,
-          y: 0,
-          hue: 120.0,
-          size: 20.0,
-          depth: 0,
-          plantId: plant.id,
-        },
-      });
-
-      return await tx.plant.findFirst({
-        where: { id: plant.id },
-        include: { plantNodes: true },
-      });
-    });
-
-    if (!newPlant) throw new Error('cant spown new plant');
-    return newPlant;
   }
 }

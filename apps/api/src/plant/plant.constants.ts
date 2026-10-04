@@ -5,6 +5,7 @@ export const MAX_CHILDREN = 4; // 子ノード数の上限
 
 // ---------- Create Node ----------
 
+export const ROOT_SIZE = 20;
 export const MIN_HUE = 80;
 export const BASE_HUE = 120;
 export const HUE_DECAY_PER_DEPTH = 4;
