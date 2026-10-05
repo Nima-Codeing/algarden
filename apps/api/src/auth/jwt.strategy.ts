@@ -2,6 +2,7 @@ import { Request } from 'express';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
+import { TOKEN_COOKIE_NAME } from './auth.constants';
 import { JwtPayload, RequestUser } from './types/user.types';
 
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -9,7 +10,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request): string | null => {
-          const token: unknown = req?.cookies?.token;
+          const token: unknown = req?.cookies?.[TOKEN_COOKIE_NAME];
           return typeof token === 'string' ? token : null;
         },
       ]),
