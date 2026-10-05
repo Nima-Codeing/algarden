@@ -1,12 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { User } from 'generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
+import { JwtService } from '@nestjs/jwt';
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { hashPassword } from './hash-password';
 import { SigninUserDto } from './dto/signin-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { hashPassword } from './hash-password';
-import { JwtPayload } from './types/jwtPayload.types';
-import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { JwtPayload, UserResponse, userSelect } from './types/user.types';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +37,7 @@ export class AuthService {
     throw new BadRequestException('EmailまたはPasswordが違います。');
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserResponse> {
     const { name, email, password } = createUserDto;
     return await this.prismaService.user.create({
       data: {
@@ -45,6 +45,7 @@ export class AuthService {
         email,
         password: await hashPassword(password),
       },
+      select: userSelect,
     });
   }
 }
