@@ -16,6 +16,7 @@ import { RequestUser, UserResponse } from './types/user.types';
 import { SigninUserDto } from './dto/signin-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { TOKEN_COOKIE_NAME, TOKEN_COOKIE_OPTIONS } from './auth.constants';
 
 @Controller('auth')
 export class AuthController {
@@ -34,18 +35,20 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     const token = await this.authService.signIn(signinUserDto);
-    res.cookie('token', token, {
+    res.cookie(TOKEN_COOKIE_NAME, token, {
+      ...TOKEN_COOKIE_OPTIONS,
       maxAge: 60 * 60 * 1000,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'strict',
-      signed: false,
     });
   }
 
   @Post('signup')
   async signUp(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
     return await this.authService.createUser(createUserDto);
+  }
+
+  @Post('signout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  signOut(@Res({ passthrough: true }) res: Response): void {
+    res.clearCookie(TOKEN_COOKIE_NAME, TOKEN_COOKIE_OPTIONS);
   }
 }
