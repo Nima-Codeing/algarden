@@ -1,16 +1,4 @@
-import { IsEmail, IsNotEmpty, IsStrongPassword } from 'class-validator';
+import { OmitType } from '@nestjs/mapped-types';
+import { CreateUserDto } from './create-user.dto';
 
-export class SigninUserDto {
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-
-  @IsStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minNumbers: 1,
-    minSymbols: 1,
-    minUppercase: 1,
-  })
-  password: string;
-}
+export class SigninUserDto extends OmitType(CreateUserDto, ['name'] as const) {}

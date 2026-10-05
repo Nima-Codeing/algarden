@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsNotEmpty,
@@ -9,16 +10,31 @@ import {
 
 export class CreateUserDto {
   @IsString()
-  @IsNotEmpty()
-  @MinLength(4, { message: 'ユーザーネームは4文字以上にしてください。' })
-  @MaxLength(12, { message: 'ユーザーネームは12文字以下にしてください。' })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsNotEmpty({ message: 'Please enter your name.' })
+  @MinLength(4, {
+    message: 'Please make sure your username is at least 4 characters long.',
+  })
+  @MaxLength(12, {
+    message: 'Please keep your username to 12 characters or fewer.',
+  })
   name: string;
 
-  @IsNotEmpty()
+  @IsString()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsNotEmpty({ message: 'Please enter your email.' })
   @IsEmail()
   email: string;
 
-  @IsNotEmpty()
+  @IsString()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsNotEmpty({ message: 'Please enter your password.' })
   @IsStrongPassword({
     minLength: 8,
     minLowercase: 1,

@@ -5,16 +5,17 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { SigninUserDto } from './dto/signin-user.dto';
-import { User } from 'generated/prisma/client';
-import { CreateUserDto } from './dto/create-user.dto';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+
+import { AuthService } from './auth.service';
+import { RequestUser, UserResponse } from './types/user.types';
+import { SigninUserDto } from './dto/signin-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -22,8 +23,8 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  getMe(@Req() req: Request) {
-    return req.user;
+  getMe(@CurrentUser() user: RequestUser): UserResponse {
+    return user;
   }
 
   @Post('signin')
@@ -44,7 +45,7 @@ export class AuthController {
   }
 
   @Post('signup')
-  async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
+  async signUp(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
     return await this.authService.createUser(createUserDto);
   }
 }
