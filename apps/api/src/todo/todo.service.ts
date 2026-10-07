@@ -265,7 +265,12 @@ export class TodoService {
     });
 
     if (activeTodo) {
-      throw new BadRequestException('他TODOのタイマーが作動しています。');
+      if (activeTodo.id === id) {
+        throw new BadRequestException(
+          'そのタスクのタイマーは既に作動しています。',
+        );
+      }
+      throw new BadRequestException('他のタスクのタイマーが作動中です。');
     }
 
     try {
