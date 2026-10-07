@@ -17,6 +17,7 @@ import {
   useUpdateTodoTitle,
 } from "../api/queries";
 import { cn } from "../../../common/utils/cn.util";
+import type { TodoData } from "@algarden/shared";
 
 type ActiveRow =
   | { type: "none" }
@@ -41,47 +42,56 @@ export const TodoList = () => {
 
   if (isPending) return <Text>loading...</Text>;
   if (isError) return <Text>Failed to load todos.</Text>;
+
+  const isTodoMeasuring = (todo: TodoData) =>
+    !!todo.startedAt && !todo.isCompleted;
+
+  const isAnyTodoMeasuring = todos.some((todo) => isTodoMeasuring(todo));
+
   return (
     <Card variant="rounded" className="p-6 border-1 border-mist-700 shadow-lg">
       <Stack direction="col">
         {todos.map((todo) => {
           const isMeasuring = !!todo.startedAt && !todo.isCompleted;
+          // NOTE: このTodoが計測中なら、全体（isAnyTodoMeasuring）も必ずtrueになる
+          const isStartDisabled = todo.isCompleted || isAnyTodoMeasuring;
 
           return (
-          <li key={todo.id}>
+            <li key={todo.id}>
               <Card
                 variant="rounded"
                 className={cn("my-1 py-2", isMeasuring ? "bg-lime-500/50" : "")}
               >
-              {activeRow.type === "edit" && activeRow.id === todo.id ? (
-                <TodoEditForm
-                  id={todo.id}
-                  title={todo.title}
-                  targetDurationMinutes={todo.targetDurationMinutes}
-                  isStarted={todo.startedAt !== null}
-                  titleMutation={titleMutation}
-                  durationMutation={durationMutation}
-                  handleExitEditMode={close}
-                />
-              ) : (
-                <TodoItem
-                  title={todo.title}
-                  targetDurationMinutes={todo.targetDurationMinutes}
-                  isCompleted={todo.isCompleted}
-                  onComplete={() => completeMutation.mutate(todo.id)}
-                  onStart={() => startMutation.mutate(todo.id)}
-                  onEditMode={() => openEdit(todo.id)}
-                  onDelete={() => {
-                    if (!window.confirm(`「${todo.title}」を削除しますか？`))
-                      return;
-                    close();
-                    deleteMutation.mutate(todo.id);
-                  }}
-                />
-              )}
-            </Card>
-            <Separator />
-          </li>
+                {activeRow.type === "edit" && activeRow.id === todo.id ? (
+                  <TodoEditForm
+                    id={todo.id}
+                    title={todo.title}
+                    targetDurationMinutes={todo.targetDurationMinutes}
+                    isStarted={todo.startedAt !== null}
+                    titleMutation={titleMutation}
+                    durationMutation={durationMutation}
+                    handleExitEditMode={close}
+                  />
+                ) : (
+                  <TodoItem
+                    title={todo.title}
+                    targetDurationMinutes={todo.targetDurationMinutes}
+                    isCompleted={todo.isCompleted}
+                    isStartDisabled={isStartDisabled}
+                    onComplete={() => completeMutation.mutate(todo.id)}
+                    onStart={() => startMutation.mutate(todo.id)}
+                    onEditMode={() => openEdit(todo.id)}
+                    onDelete={() => {
+                      if (!window.confirm(`「${todo.title}」を削除しますか？`))
+                        return;
+                      close();
+                      deleteMutation.mutate(todo.id);
+                    }}
+                  />
+                )}
+              </Card>
+              <Separator />
+            </li>
           );
         })}
 
