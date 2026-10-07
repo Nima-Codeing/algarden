@@ -23,7 +23,7 @@ export const Card = ({
   return (
     <div
       className={cn(
-        "bg-white p-6 w-full",
+        "bg-white w-full",
         className,
         variants[variant],
       )}

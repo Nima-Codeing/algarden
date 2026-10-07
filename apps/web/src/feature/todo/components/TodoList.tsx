@@ -16,6 +16,7 @@ import {
   useUpdateTodoTargetDuration,
   useUpdateTodoTitle,
 } from "../api/queries";
+import { cn } from "../../../common/utils/cn.util";
 
 type ActiveRow =
   | { type: "none" }
@@ -41,11 +42,17 @@ export const TodoList = () => {
   if (isPending) return <Text>loading...</Text>;
   if (isError) return <Text>Failed to load todos.</Text>;
   return (
-    <Card variant="rounded" className="border-1 border-mist-700 shadow-lg">
+    <Card variant="rounded" className="p-6 border-1 border-mist-700 shadow-lg">
       <Stack direction="col">
-        {todos.map((todo) => (
+        {todos.map((todo) => {
+          const isMeasuring = !!todo.startedAt && !todo.isCompleted;
+
+          return (
           <li key={todo.id}>
-            <Card className="py-2">
+              <Card
+                variant="rounded"
+                className={cn("my-1 py-2", isMeasuring ? "bg-lime-500/50" : "")}
+              >
               {activeRow.type === "edit" && activeRow.id === todo.id ? (
                 <TodoEditForm
                   id={todo.id}
@@ -75,7 +82,8 @@ export const TodoList = () => {
             </Card>
             <Separator />
           </li>
-        ))}
+          );
+        })}
 
         <li>
           <Card className="py-2">
