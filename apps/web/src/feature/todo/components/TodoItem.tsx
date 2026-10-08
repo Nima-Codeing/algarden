@@ -6,6 +6,7 @@ type Props = {
   title: string;
   targetDurationMinutes: number | null;
   isCompleted: boolean;
+  isStartDisabled: boolean;
   onComplete: () => void;
   onStart: () => void;
   onEditMode: () => void;
@@ -16,6 +17,7 @@ export const TodoItem = ({
   title,
   targetDurationMinutes,
   isCompleted,
+  isStartDisabled,
   onComplete,
   onStart,
   onEditMode,
@@ -51,7 +53,7 @@ export const TodoItem = ({
             icon={iconMap[isCompleted ? "playOff" : "play"]}
             variant="none"
             onClick={onStart}
-            disabled={isCompleted}
+            disabled={isStartDisabled}
           />
         </div>
         <div className="flex justify-center col-span-1 w-full">

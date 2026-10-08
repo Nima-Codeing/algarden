@@ -3,7 +3,7 @@ import { TodoService } from './todo.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GardenService } from 'src/garden/garden.service';
 import { PlantService } from 'src/plant/plant.service';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 describe('TodoService', () => {
@@ -27,6 +27,7 @@ describe('TodoService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
     prismaMock.$transaction.mockImplementation(
       (cb: (tx: typeof prismaMock) => unknown) => cb(prismaMock),
     );
@@ -42,6 +43,9 @@ describe('TodoService', () => {
 
     service = module.get<TodoService>(TodoService);
   });
+
+  const prismaError = (code: string) =>
+    new PrismaClientKnownRequestError('', { code, clientVersion: 'test' });
 
   describe('updateTitle', () => {
     it('他ユーザーのTodoを更新できないよう、更新条件にuserIdを含める', async () => {
@@ -121,11 +125,64 @@ describe('TodoService', () => {
   });
 
   describe('startTimer', () => {
-    it('タイマーの排他判定をTodo自身のgardenIdで行う', async () => {
+    it('異常系: 他ユーザーのTodoは、存在を明かさないよう 404 で拒否する', async () => {
+      prismaMock.todo.findFirst.mockResolvedValueOnce(null);
+
+      const promise = service.startTimer('todo-1', 'other');
+
+      await expect(promise).rejects.toBeInstanceOf(NotFoundException);
+      await expect(promise).rejects.toThrow('TODOが見つかりません。');
+      expect(prismaMock.todo.findFirst).toHaveBeenCalledWith({
+        where: { id: 'todo-1', userId: 'other' },
+      });
+      expect(prismaMock.todo.update).not.toHaveBeenCalled();
+    });
+
+    it('異常系: 計測中のTodo自身を開始すると、BadRequestException を投げる', async () => {
+      prismaMock.todo.findFirst
+        .mockResolvedValueOnce({ id: 'todo-1', gardenId: 'garden-1' })
+        .mockResolvedValueOnce({ id: 'todo-1' });
+
+      const promise = service.startTimer('todo-1', 'user-1');
+
+      await expect(promise).rejects.toBeInstanceOf(BadRequestException);
+      await expect(promise).rejects.toThrow(
+        'そのタスクのタイマーは既に作動しています。',
+      );
+      expect(prismaMock.todo.update).not.toHaveBeenCalled();
+    });
+
+    it('異常系: 他のTodoが計測中にTodoを開始すると、BadRequestException を投げる', async () => {
+      prismaMock.todo.findFirst
+        .mockResolvedValueOnce({ id: 'todo-1', gardenId: 'garden-1' })
+        .mockResolvedValueOnce({ id: 'todo-2' });
+
+      const promise = service.startTimer('todo-1', 'user-1');
+
+      await expect(promise).rejects.toBeInstanceOf(BadRequestException);
+      await expect(promise).rejects.toThrow(
+        '他のタスクのタイマーが作動中です。',
+      );
+      expect(prismaMock.todo.update).not.toHaveBeenCalled();
+    });
+
+    it('異常系: 完了済みのTodoを開始しようとすると、書き込みが失敗し、BadRequestException を投げる', async () => {
       prismaMock.todo.findFirst
         .mockResolvedValueOnce({ id: 'todo-1', gardenId: 'garden-prev' })
         .mockResolvedValueOnce(null);
-      prismaMock.todo.update.mockResolvedValue({ id: 'todo-1' });
+      prismaMock.todo.update.mockRejectedValueOnce(prismaError('P2025'));
+
+      const promise = service.startTimer('todo-1', 'user-1');
+
+      await expect(promise).rejects.toBeInstanceOf(BadRequestException);
+      await expect(promise).rejects.toThrow('開始済のTODOです。');
+    });
+
+    it('正常系: 繰り越した先月のTodoでも、そのTodoが属する庭の中で計測中のTodoを探す', async () => {
+      prismaMock.todo.findFirst
+        .mockResolvedValueOnce({ id: 'todo-1', gardenId: 'garden-prev' })
+        .mockResolvedValueOnce(null);
+      prismaMock.todo.update.mockResolvedValueOnce({ id: 'todo-1' });
 
       await service.startTimer('todo-1', 'user-1');
 
@@ -137,15 +194,6 @@ describe('TodoService', () => {
         },
       });
       expect(gardenMock.getActive).not.toHaveBeenCalled();
-    });
-
-    it('他ユーザーのTodoは起動できない', async () => {
-      prismaMock.todo.findFirst.mockResolvedValue(null);
-
-      await expect(service.startTimer('todo-1', 'other')).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(prismaMock.todo.update).not.toHaveBeenCalled();
     });
   });
 });
