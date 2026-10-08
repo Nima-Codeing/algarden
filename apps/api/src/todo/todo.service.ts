@@ -12,7 +12,8 @@ import { PlantNodeResponse } from 'src/plant/types/plant.types';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoTitleDto } from './dto/update-todo-title.dto';
 import { UpdateTodoDurationDto } from './dto/update-todo-duration.dto';
-import { Prisma, Todo, TodoScore } from 'generated/prisma/client';
+import { Prisma, Todo } from 'generated/prisma/client';
+import { calcScore } from './calc-score';
 import {
   CompleteTodo,
   Score,
@@ -27,39 +28,6 @@ export class TodoService {
     private readonly gardenService: GardenService,
     private readonly plantService: PlantService,
   ) {}
-
-  /**
-   * Todoの作業時間と目標時間の差分率からスコアランクとノード生成数を算出する
-   *
-   * @param {CompleteTodo} completeTodo - 完了するTodo
-   * @returns {Score} スコアランクと生成するノード数
-   */
-  private calcScore(completeTodo: CompleteTodo): Score {
-    const { startedAt, completedAt, targetDuration } = completeTodo;
-
-    // 目標時間が未設定の場合はスコアなしでノード1個
-    if (!targetDuration) return { rank: null, nodeCount: 1 };
-
-    // 作業時間(秒)
-    const timeSpent: number =
-      (completedAt.getTime() - startedAt.getTime()) / 1000;
-
-    // 目標値と実値の差分率
-    const dissociationRate: number =
-      Math.abs(timeSpent - targetDuration) / targetDuration;
-
-    if (dissociationRate <= 0.05) {
-      return { rank: TodoScore.S, nodeCount: 5 };
-    } else if (dissociationRate <= 0.1) {
-      return { rank: TodoScore.A, nodeCount: 4 };
-    } else if (dissociationRate <= 0.25) {
-      return { rank: TodoScore.B, nodeCount: 3 };
-    } else if (dissociationRate <= 0.5) {
-      return { rank: TodoScore.C, nodeCount: 2 };
-    } else {
-      return { rank: TodoScore.D, nodeCount: 1 };
-    }
-  }
 
   /**
    * ユーザーのアクティブなGardenのidを取得する
@@ -308,7 +276,7 @@ export class TodoService {
     };
 
     // 更新用Score 作成
-    const score: Score = this.calcScore(completeTodo);
+    const score: Score = calcScore(completeTodo);
 
     // 更新用Plant要素 作成
     // NOTE: アクティブGardenではなくTodo自身のgardenIdを使う
