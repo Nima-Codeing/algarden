@@ -5,3 +5,16 @@ body,
 #root {
   height: 100%;
 }
+
+@utility scrollbar-subtle {
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+
+  /* NOTE: transparentが透明な黒で、黒を経由しないよう透明なグレーから始める */
+  transition: scrollbar-color 0.3s ease;
+  scrollbar-color: --alpha(var(--color-gray-300) / 0%) transparent;
+
+  &:hover {
+    scrollbar-color: var(--color-gray-300) transparent;
+  }
+}
