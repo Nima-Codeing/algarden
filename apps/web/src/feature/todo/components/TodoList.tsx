@@ -19,6 +19,16 @@ import {
 import { cn } from "../../../common/utils/cn.util";
 import type { TodoData } from "@algarden/shared";
 
+/** 計測中Todoであれば true を返す */
+const isTodoMeasuring = (todo: TodoData) =>
+  !!todo.startedAt && !todo.isCompleted;
+
+/** 日時が今日（ブラウザ日付）であれば true を返す */
+const isToday = (completedAt: string | null) => {
+  if (completedAt === null) return false;
+  return new Date(completedAt).toDateString() === new Date().toDateString();
+};
+
 type ActiveRow =
   | { type: "none" }
   | { type: "create" }
@@ -43,16 +53,17 @@ export const TodoList = () => {
   if (isPending) return <Text>loading...</Text>;
   if (isError) return <Text>Failed to load todos.</Text>;
 
-  const isTodoMeasuring = (todo: TodoData) =>
-    !!todo.startedAt && !todo.isCompleted;
-
   const isAnyTodoMeasuring = todos.some((todo) => isTodoMeasuring(todo));
+
+  const visibleTodos = todos.filter(
+    (todo) => isToday(todo.completedAt) || !todo.isCompleted,
+  );
 
   return (
     <Card variant="rounded" className="p-6 border-1 border-mist-700 shadow-lg">
       <Stack direction="col">
-        {todos.map((todo) => {
-          const isMeasuring = !!todo.startedAt && !todo.isCompleted;
+        {visibleTodos.map((todo) => {
+          const isMeasuring = isTodoMeasuring(todo);
           // NOTE: このTodoが計測中なら、全体（isAnyTodoMeasuring）も必ずtrueになる
           const isStartDisabled = todo.isCompleted || isAnyTodoMeasuring;
 
