@@ -55,10 +55,24 @@ export const TodoList = () => {
 
   const isAnyTodoMeasuring = todos.some((todo) => isTodoMeasuring(todo));
 
-  const visibleTodos = todos.filter(
-    (todo) => isToday(todo.completedAt) || !todo.isCompleted,
-  );
-
+  const visibleTodos = todos
+    .filter((todo) => isToday(todo.completedAt) || !todo.isCompleted)
+    .sort((a, b) => {
+      // 計測中かどうかの判定
+      const aMeasuring = isTodoMeasuring(a);
+      const bMeasuring = isTodoMeasuring(b);
+      // 計測中のものを最優先
+      if (aMeasuring !== bMeasuring) {
+        return aMeasuring ? -1 : 1;
+      }
+      // 完了状態の比較（未完了 = false, 完了済み = true）
+      if (a.isCompleted !== b.isCompleted) {
+        return a.isCompleted ? 1 : -1;
+      }
+      // 同じグループ内での作成日時（createdAt）降順
+      // NOTE: createdAt は秒単位なので、同じ秒に作られたものは id で順番を固定する
+      return b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id);
+    });
   return (
     <Card
       variant="rounded"
