@@ -21,6 +21,7 @@ export const todoSelect = {
   score: true,
   startedAt: true,
   completedAt: true,
+  createdAt: true,
 } satisfies Prisma.TodoSelect;
 
 // フロントに送るデータ

@@ -8,4 +8,5 @@ export interface TodoData {
   score: TodoScore | null;
   startedAt: string | null;
   completedAt: string | null;
+  createdAt: string;
 }
