@@ -60,8 +60,14 @@ export const TodoList = () => {
   );
 
   return (
-    <Card variant="rounded" className="p-6 border-1 border-mist-700 shadow-lg">
-      <Stack direction="col">
+    <Card
+      variant="rounded"
+      className="p-6 border-1 border-mist-700 shadow-lg h-full flex flex-col"
+    >
+      <Stack
+        direction="col"
+        className="flex-1 min-h-0 overflow-y-auto scrollbar-subtle"
+      >
         {visibleTodos.map((todo) => {
           const isMeasuring = isTodoMeasuring(todo);
           // NOTE: このTodoが計測中なら、全体（isAnyTodoMeasuring）も必ずtrueになる
@@ -105,18 +111,15 @@ export const TodoList = () => {
             </li>
           );
         })}
-
-        <li>
-          <Card className="py-2">
-            <TodoCreationForm
-              isOpen={activeRow.type === "create"}
-              onOpen={openCreate}
-              onClose={close}
-              createMutation={createMutation}
-            />
-          </Card>
-        </li>
       </Stack>
+      <Card className="py-2">
+        <TodoCreationForm
+          isOpen={activeRow.type === "create"}
+          onOpen={openCreate}
+          onClose={close}
+          createMutation={createMutation}
+        />
+      </Card>
     </Card>
   );
 };
