@@ -18,18 +18,18 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full flex flex-col">
       <div className="flex justify-end w-full px-4 py-4">
         <Text className="text-right">{`user: ${user?.name}`}</Text>
         <Button onClick={handleSignOut} disabled={signOutMutation.isPending}>
           <Text>Sign-out</Text>
         </Button>
       </div>
-      <div className="grid grid-cols-2 place-items-center w-full h-full">
-        <div className="flex flex-col justify-start pl-4 w-full h-full">
+      <div className="grid grid-cols-5 place-items-center w-full flex-1 min-h-0">
+        <div className="col-span-2 flex flex-col justify-start pl-4 py-4 w-full h-full min-h-0">
           <TodoList />
         </div>
-        <div className="flex justify-center w-full h-full">
+        <div className="col-span-3 flex justify-center w-full h-full">
           <GardenCanvas />
         </div>
       </div>
