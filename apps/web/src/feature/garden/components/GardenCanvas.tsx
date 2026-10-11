@@ -43,7 +43,7 @@ const calcCoord = (nodes: PlantNodeData[]): Map<string, Coordinate> => {
   return coordMap;
 };
 
-export const GardenCanvas = () => {
+export const GardenCanvas = ({ className = "" }: { className?: string }) => {
   const SKELETON_EDGE_COLOR = "#ffffff";
   const SPREAD_EDGE_COLOR = "#fd6969";
   const EDGE_WIDTH = 1;
@@ -56,57 +56,54 @@ export const GardenCanvas = () => {
   if (isError) return <Text>Failed to load garden.</Text>;
 
   return (
-    <svg
-      className="border-4 border-purple-400 bg-mist-900"
-      width="400"
-      height="400"
-      viewBox="0 0 400 400"
-    >
-      {
-        // Plant単位で描画する
-        garden.plants.map((plant) => {
-          const coordMap = calcCoord(plant.plantNodes);
+    <div className={className}>
+      <svg className="w-full h-full overflow-visible" viewBox="0 0 400 400">
+        {
+          // Plant単位で描画する
+          garden.plants.map((plant) => {
+            const coordMap = calcCoord(plant.plantNodes);
 
-          return (
-            <g key={plant.id}>
-              {plant.plantEdges.map((e) => {
-                // Edge 描画
-                const from = coordMap.get(e.fromId);
-                const to = coordMap.get(e.toId);
-                if (!from || !to) return null;
-                
-                const edgeColor =
-                  e.edgeType === "SKELETON"
-                    ? SKELETON_EDGE_COLOR
-                    : SPREAD_EDGE_COLOR;
+            return (
+              <g key={plant.id}>
+                {plant.plantEdges.map((e) => {
+                  // Edge 描画
+                  const from = coordMap.get(e.fromId);
+                  const to = coordMap.get(e.toId);
+                  if (!from || !to) return null;
 
-                return (
-                  <line
-                    key={e.id}
-                    x1={from.x}
-                    y1={from.y}
-                    x2={to.x}
-                    y2={to.y}
-                    stroke={edgeColor}
-                    strokeWidth={EDGE_WIDTH}
+                  const edgeColor =
+                    e.edgeType === "SKELETON"
+                      ? SKELETON_EDGE_COLOR
+                      : SPREAD_EDGE_COLOR;
+
+                  return (
+                    <line
+                      key={e.id}
+                      x1={from.x}
+                      y1={from.y}
+                      x2={to.x}
+                      y2={to.y}
+                      stroke={edgeColor}
+                      strokeWidth={EDGE_WIDTH}
+                    />
+                  );
+                })}
+
+                {Array.from(coordMap.entries()).map(([id, n]) => (
+                  // Node 描画
+                  <circle
+                    key={id}
+                    cx={n.x}
+                    cy={n.y}
+                    r={n.r}
+                    fill={`hsl(${n.hue} ${SATURATION}% ${BRIGHTNESS}%)`}
                   />
-                );
-              })}
-
-              {Array.from(coordMap.entries()).map(([id, n]) => (
-                // Node 描画
-                <circle
-                  key={id}
-                  cx={n.x}
-                  cy={n.y}
-                  r={n.r}
-                  fill={`hsl(${n.hue} ${SATURATION}% ${BRIGHTNESS}%)`}
-                />
-              ))}
-            </g>
-          );
-        })
-      }
-    </svg>
+                ))}
+              </g>
+            );
+          })
+        }
+      </svg>
+    </div>
   );
 };

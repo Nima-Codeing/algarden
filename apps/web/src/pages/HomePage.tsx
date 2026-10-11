@@ -1,9 +1,9 @@
 import { TodoList } from "../feature/todo/components/TodoList";
 import { GardenCanvas } from "../feature/garden/components/GardenCanvas";
 import { useMe, useSignOut } from "../feature/auth/api/queries";
-import { Text } from "../components/ui/atoms/Text";
-import { Button } from "../components/ui/atoms/Button";
 import { useNavigate } from "react-router";
+import { MainLayout } from "../layouts/MainLayout";
+import { Header } from "../components/ui/organisms/Header";
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -18,21 +18,22 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <div className="flex justify-end w-full px-4 py-4">
-        <Text className="text-right">{`user: ${user?.name}`}</Text>
-        <Button onClick={handleSignOut} disabled={signOutMutation.isPending}>
-          <Text>Sign-out</Text>
-        </Button>
+    <MainLayout
+      header={
+        <Header
+          userName={user?.name}
+          isPending={signOutMutation.isPending}
+          handleSignOut={handleSignOut}
+        />
+      }
+    >
+      <div
+        className="relative w-full h-full min-h-0"
+        style={{ "--panel-w": "500px" } as React.CSSProperties}
+      >
+        <GardenCanvas className="absolute inset-y-0 left-0 right-[calc(var(--panel-w)+2rem)]" />
+        <TodoList className="absolute top-4 right-4 bottom-4 w-(--panel-w)" />
       </div>
-      <div className="grid grid-cols-5 place-items-center w-full flex-1 min-h-0">
-        <div className="col-span-2 flex flex-col justify-start pl-4 py-4 w-full h-full min-h-0">
-          <TodoList />
-        </div>
-        <div className="col-span-3 flex justify-center w-full h-full">
-          <GardenCanvas />
-        </div>
-      </div>
-    </div>
+    </MainLayout>
   );
 };
