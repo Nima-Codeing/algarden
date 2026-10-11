@@ -22,7 +22,7 @@ export const Button = ({
       type={type}
       disabled={disabled}
       className={cn(
-        "flex items-center justify-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-100 transition-colors",
+        "flex items-center justify-center gap-2 px-4 py-2 border rounded-md hover:bg-current/10 transition-colors",
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent",
         className,
       )}
