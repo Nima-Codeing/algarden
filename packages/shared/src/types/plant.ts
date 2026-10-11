@@ -2,6 +2,7 @@ export type PlantEdgeType = "SKELETON" | "SPREAD";
 
 export interface PlantData {
   id: string;
+  seed: SeedData;
   plantNodes: PlantNodeData[];
   plantEdges: PlantEdgeData[];
 }
@@ -21,4 +22,12 @@ export interface PlantEdgeData {
   fromId: string;
   toId: string;
   edgeType: PlantEdgeType;
+}
+
+// NOTE: gardenに植えられているSeedへの使用のみ
+export interface SeedData {
+  id: string;
+  x: number | null;
+  y: number | null;
+  gardenId: string;
 }

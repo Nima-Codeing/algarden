@@ -1,4 +1,4 @@
-import { PlantNodeData } from '@algarden/shared';
+import { PlantData, PlantNodeData, SeedData } from '@algarden/shared';
 import { EdgeType, GrowthStage, Prisma } from 'generated/prisma/client';
 import { Assert, Jsonify } from 'src/common/types/contract.types';
 
@@ -15,6 +15,24 @@ export const plantNodeSelect = {
   createdAt: true,
 } satisfies Prisma.PlantNodeSelect;
 
+// todo.complete が返す１ノード型
+export type PlantNodeResponse = Prisma.PlantNodeGetPayload<{
+  select: typeof plantNodeSelect;
+}>;
+
+/** -------------- Seed ------------- **/
+
+export const seedSelect = {
+  id: true,
+  x: true,
+  y: true,
+  gardenId: true,
+} satisfies Prisma.SeedSelect;
+
+export type SeedResponse = Prisma.SeedGetPayload<{
+  select: typeof seedSelect;
+}>;
+
 /** ----------- PlantEdge ----------- **/
 
 export const plantEdgeSelect = {
@@ -28,23 +46,28 @@ export const plantEdgeSelect = {
 
 export const plantSelect = {
   id: true,
+  seed: { select: seedSelect },
   plantNodes: { select: plantNodeSelect },
   plantEdges: { select: plantEdgeSelect },
 } satisfies Prisma.PlantSelect;
 
-// todo.complete が返す１ノード型
-export type PlantNodeResponse = Prisma.PlantNodeGetPayload<{
-  select: typeof plantNodeSelect;
+export type PlantResponse = Prisma.PlantGetPayload<{
+  select: typeof plantSelect;
 }>;
 
 /** ------------- Check ------------- **/
+
 // 項目の不足チェック
+export type PlantContract = Assert<PlantData, Jsonify<PlantResponse>>;
+export type SeedContract = Assert<SeedData, Jsonify<SeedResponse>>;
 export type PlantNodeContract = Assert<
   PlantNodeData,
   Jsonify<PlantNodeResponse>
 >;
 
 // 項目の余分チェック
+export type PlantContractNoExcess = Assert<Jsonify<PlantResponse>, PlantData>;
+export type SeedContractNoExcess = Assert<Jsonify<SeedResponse>, SeedData>;
 export type PlantNodeContractNoExcess = Assert<
   Jsonify<PlantNodeResponse>,
   PlantNodeData
