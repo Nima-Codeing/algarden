@@ -33,7 +33,7 @@ export const RangeSlider = ({
           onChange={(e) => onChange(e.target.value)}
         />
       </div>
-      <div className="flex justify-between text-gray-500">
+      <div className="flex justify-between">
         <Text id="minRange">{value === "" ? "-" : `${value} m`}</Text>
         <Text id="maxRange">{`${max} m`}</Text>
       </div>
