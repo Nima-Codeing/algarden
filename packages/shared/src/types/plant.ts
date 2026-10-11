@@ -26,8 +26,6 @@ export interface PlantEdgeData {
 
 // NOTE: gardenに植えられているSeedへの使用のみ
 export interface SeedData {
-  id: string;
   x: number | null;
   y: number | null;
-  gardenId: string;
 }

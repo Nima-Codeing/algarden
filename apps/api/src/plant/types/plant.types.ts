@@ -23,10 +23,8 @@ export type PlantNodeResponse = Prisma.PlantNodeGetPayload<{
 /** -------------- Seed ------------- **/
 
 export const seedSelect = {
-  id: true,
   x: true,
   y: true,
-  gardenId: true,
 } satisfies Prisma.SeedSelect;
 
 export type SeedResponse = Prisma.SeedGetPayload<{
