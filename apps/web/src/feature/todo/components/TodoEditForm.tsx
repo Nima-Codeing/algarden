@@ -82,7 +82,7 @@ export const TodoEditForm = ({
       </div>
       <div className="flex justify-center col-span-8 w-full">
         <input
-          className="border-2 border-gray-700 rounded mr-8 w-full truncate"
+          className="border-2 border-current/30 rounded mr-8 w-full truncate"
           value={title}
           type="text"
           placeholder=" task name"
@@ -98,7 +98,7 @@ export const TodoEditForm = ({
             </Text>
           ) : (
             <input
-              className="w-full mr-4 text-right truncate border-2 border-gray-700 rounded"
+              className="w-full mr-4 text-right truncate border-2 border-current/30 rounded"
               value={targetDuration}
               type="text"
               placeholder="timer"

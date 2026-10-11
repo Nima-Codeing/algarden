@@ -1,12 +1,14 @@
 import { Text } from "../../../components/ui/atoms/Text";
 import { IconButton } from "../../../components/ui/molecules/IconButton";
 import { iconMap } from "../../../common/constants/icons.constant";
+import { cn } from "../../../common/utils/cn.util";
 
 type Props = {
   title: string;
   targetDurationMinutes: number | null;
   isCompleted: boolean;
   isStartDisabled: boolean;
+  className?: string;
   onComplete: () => void;
   onStart: () => void;
   onEditMode: () => void;
@@ -18,13 +20,16 @@ export const TodoItem = ({
   targetDurationMinutes,
   isCompleted,
   isStartDisabled,
+  className = "",
   onComplete,
   onStart,
   onEditMode,
   onDelete,
 }: Props) => {
   return (
-    <div className="grid grid-cols-16 place-items-center w-full">
+    <div
+      className={cn("grid grid-cols-16 place-items-center w-full", className)}
+    >
       <div className="flex justify-center col-span-1 w-full">
         <input
           type="checkbox"

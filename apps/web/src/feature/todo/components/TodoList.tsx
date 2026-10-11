@@ -34,7 +34,10 @@ type ActiveRow =
   | { type: "create" }
   | { type: "edit"; id: string };
 
-export const TodoList = () => {
+const baseStyle =
+  "p-3 border-1 border-mist-600 shadow-lg flex flex-col bg-mist-200/30 text-mist-100";
+
+export const TodoList = ({ className = "" }: { className?: string }) => {
   const { data: todos, isPending, isError } = useTodos();
 
   const startMutation = useStartTodo();
@@ -73,11 +76,9 @@ export const TodoList = () => {
       // NOTE: createdAt は秒単位なので、同じ秒に作られたものは id で順番を固定する
       return b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id);
     });
+
   return (
-    <Card
-      variant="rounded"
-      className="p-6 border-1 border-mist-700 shadow-lg h-full flex flex-col"
-    >
+    <Card variant="rounded" className={cn(baseStyle, className)}>
       <Stack
         direction="col"
         className="flex-1 min-h-0 overflow-y-auto scrollbar-subtle"
@@ -91,7 +92,10 @@ export const TodoList = () => {
             <li key={todo.id}>
               <Card
                 variant="rounded"
-                className={cn("my-1 py-2", isMeasuring ? "bg-lime-500/50" : "")}
+                className={cn(
+                  "my-1 py-2",
+                  isMeasuring ? "bg-lime-500/50" : "",
+                )}
               >
                 {activeRow.type === "edit" && activeRow.id === todo.id ? (
                   <TodoEditForm
@@ -121,7 +125,7 @@ export const TodoList = () => {
                   />
                 )}
               </Card>
-              <Separator />
+              <Separator className="bg-mist-200" />
             </li>
           );
         })}
