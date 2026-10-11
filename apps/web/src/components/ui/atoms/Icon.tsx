@@ -7,7 +7,7 @@ interface IconProps {
   className?: string;
 }
 
-const defaultStyle = "text-gray-800 w-[14px] h-[14px]";
+const defaultStyle = "w-[14px] h-[14px]";
 
 export const Icon = ({ icon: IconComponent, className = "" }: IconProps) => {
   return <IconComponent className={cn(defaultStyle, className)} />;
