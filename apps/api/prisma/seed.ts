@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { hashPassword } from 'src/auth/hash-password';
+import { buildLargeGarden } from './fixtures/large-garden';
 import { DateService } from 'src/common/date/date.service';
 import { EdgeType, PrismaClient } from '../generated/prisma/client';
 
@@ -234,6 +235,43 @@ export async function main() {
       },
     ],
   });
+
+  // 自動フィット確認用：ノードが多く、片寄って広がった庭を持つユーザー
+  const LARGE_NODE_COUNT = 1000;
+
+  const largeUser = await prisma.user.create({
+    data: {
+      name: 'large',
+      email: 'large@al.com',
+      password: await hashPassword('Dev.9999'),
+    },
+  });
+
+  const largeGarden = await prisma.garden.create({
+    data: { userId: largeUser.id, endAt: nextMonthFirstDay },
+  });
+
+  const largeSeed = await prisma.seed.create({
+    data: {
+      x: 0,
+      y: 0,
+      isPlanted: true,
+      plantedAt: new Date(),
+      gardenId: largeGarden.id,
+    },
+  });
+
+  const largePlant = await prisma.plant.create({
+    data: {
+      gardenId: largeGarden.id,
+      seedId: largeSeed.id,
+      nodeCount: LARGE_NODE_COUNT,
+    },
+  });
+
+  const { nodes, edges } = buildLargeGarden(largePlant.id, LARGE_NODE_COUNT);
+  await prisma.plantNode.createMany({ data: nodes });
+  await prisma.plantEdge.createMany({ data: edges });
 }
 
 main()
