@@ -37,6 +37,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
     "cookie-parser": "^1.4.7",
+    "d3-force": "^3.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "prisma": "^7.10.0",
@@ -50,6 +51,7 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/cookie-parser": "^1.4.10",
+    "@types/d3-force": "^3.0.10",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
@@ -89,6 +91,9 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
+    "moduleNameMapper": {
+      "^d3-(force|dispatch|quadtree|timer)$": "<rootDir>/../../../node_modules/d3-$1/dist/d3-$1.js"
+    },
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }
