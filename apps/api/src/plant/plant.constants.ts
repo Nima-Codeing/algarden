@@ -23,3 +23,12 @@ export const P_FIRE = 0.4;
 export const P_BURN_MAIN = [0.4, 0.3, 0.25, 0.2, 0.15, 0];
 // 副エッジを通る隣接ノードの深さ毎の延焼発生確率
 export const P_BURN_SUB = [0.18, 0.15, 0.1, 0.05, 0.01, 0];
+
+// ---------- Layout (d3-force) ----------
+
+export const LAYOUT_HOPS = 2; // 新ノードから何ホップ以内を動かすか
+export const LAYOUT_TICKS = 300; // シミュレーションを進める回数
+export const LAYOUT_ALPHA = 0.5; // 初期温度
+export const LAYOUT_LINK_DISTANCE = 40; // エッジの長さの目標
+export const LAYOUT_LINK_STRENGTH = 0.5; // エッジのバネの強さ
+export const LAYOUT_CHARGE_STRENGTH = -50; // ノード同士の反発（マイナスが反発）

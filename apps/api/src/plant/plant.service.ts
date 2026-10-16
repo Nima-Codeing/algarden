@@ -32,6 +32,7 @@ import {
 } from './plant.constants';
 import { RandomService } from 'src/common/random/random.service';
 import { DateService } from 'src/common/date/date.service';
+import { calcCoord, CalcCoordResult } from './calc-coord';
 
 @Injectable()
 export class PlantService {
@@ -137,6 +138,26 @@ export class PlantService {
         growthStage: stage,
       },
     });
+  }
+
+  /**
+   * シミュレート後の座標に更新する
+   *
+   * @param {Prisma.TransactionClient} tx - トランザクションクライアント
+   * @param {CalcCoordResult[]} coords - シミュレート後の座標
+   */
+  async updateCoord(
+    tx: Prisma.TransactionClient,
+    coords: CalcCoordResult[],
+  ): Promise<void> {
+    await Promise.all(
+      coords.map((c) =>
+        tx.plantNode.update({
+          where: { id: c.id },
+          data: { x: c.x, y: c.y },
+        }),
+      ),
+    );
   }
 
   /**
@@ -300,6 +321,14 @@ export class PlantService {
       if (this.randomService.withChance(P_FIRE)) {
         await this.forestFire(tx, plantId, newNode.id, mainEdge.id, parent.id);
       }
+
+      // 座標シミュレート
+      const createdNodes = await this.getPlantNodes(tx, plantId);
+      const createdEdges = await this.getPlantEdges(tx, plantId);
+      const moveNodes = calcCoord(createdNodes, createdEdges, newNode.id);
+
+      // シミュレート後の座標を保存
+      await this.updateCoord(tx, moveNodes);
     }
     await this.updatePlantGrowth(tx, plantId, count, growthStat.curStage);
 
