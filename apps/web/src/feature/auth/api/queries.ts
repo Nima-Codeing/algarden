@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
 
 import { signIn } from "./signIn";
 import { signUp } from "./signUp";
@@ -30,13 +29,8 @@ export const useSignIn = () => {
 };
 
 export const useSignUp = () => {
-  const navigate = useNavigate();
-
   return useMutation({
     mutationFn: signUp,
-    onSuccess: () => {
-      navigate("/signin");
-    },
     onError: (e) => {
       alert(e.message || "エラーが発生しました。");
     },

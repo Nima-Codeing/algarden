@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router";
+import { Link, Navigate, useNavigate } from "react-router";
 
 import { Text } from "../components/ui/atoms/Text";
 import { Card } from "../components/ui/atoms/Card";
@@ -12,6 +12,8 @@ import { useMe, useSignUp } from "../feature/auth/api/queries";
 import type { RequestSignUp } from "../feature/auth/api/signUp";
 
 export const SignupPage = () => {
+  const navigate = useNavigate();
+
   const { isPending, isSuccess } = useMe();
   const signUpMutation = useSignUp();
 
@@ -19,7 +21,7 @@ export const SignupPage = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const handleSignUp = async (e: React.SubmitEvent) => {
+  const handleSignUp = (e: React.SubmitEvent) => {
     e.preventDefault();
     const res = signUpSchema.safeParse({
       name,
@@ -33,7 +35,9 @@ export const SignupPage = () => {
       alert(errorMessages);
       return;
     }
-    signUpMutation.mutate(res.data satisfies RequestSignUp);
+    signUpMutation.mutate(res.data satisfies RequestSignUp, {
+      onSuccess: () => navigate("/signin"),
+    });
   };
 
   if (isPending) return <Text>loading...</Text>;
