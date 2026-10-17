@@ -12,7 +12,7 @@ import type { RequestSignIn } from "../feature/auth/api/signIn";
 import { Button } from "../components/ui/atoms/Button";
 
 export const SigninPage = () => {
-  const { isSuccess } = useMe();
+  const { isPending, isSuccess } = useMe();
   const signInMutation = useSignIn();
 
   const [email, setEmail] = useState<string>("");
@@ -31,6 +31,7 @@ export const SigninPage = () => {
     signInMutation.mutate(res.data satisfies RequestSignIn);
   };
 
+  if (isPending) return <Text>loading...</Text>;
   if (isSuccess) return <Navigate to="/" replace />;
 
   return (

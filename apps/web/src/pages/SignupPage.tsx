@@ -12,7 +12,7 @@ import { useMe, useSignUp } from "../feature/auth/api/queries";
 import type { RequestSignUp } from "../feature/auth/api/signUp";
 
 export const SignupPage = () => {
-  const { isSuccess } = useMe();
+  const { isPending, isSuccess } = useMe();
   const signUpMutation = useSignUp();
 
   const [name, setName] = useState<string>("");
@@ -35,6 +35,8 @@ export const SignupPage = () => {
     }
     signUpMutation.mutate(res.data satisfies RequestSignUp);
   };
+
+  if (isPending) return <Text>loading...</Text>;
   if (isSuccess) return <Navigate to="/" replace />;
 
   return (
