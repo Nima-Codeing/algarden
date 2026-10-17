@@ -1,57 +1,55 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { apiClient } from "../api/client";
+
+import { Button } from "../components/ui/atoms/Button";
+import { useSignUp } from "../feature/auth/api/queries";
+import { signUpSchema } from "../feature/auth/authSchema";
+import type { RequestSignUp } from "../feature/auth/api/signUp";
 
 export const SignupPage = () => {
-  const navigate = useNavigate();
+  const signUpMutation = useSignUp();
 
-  const [inputName, setInputName] = useState<string>("");
-  const [inputEmail, setInputEmail] = useState<string>("");
-  const [inputPassword, setInputPassword] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
-  const handleSignUp = async () => {
-    try {
-      const res = await apiClient("/auth/signup", {
-        method: "POST",
-        body: JSON.stringify({
-          name: inputName,
-          email: inputEmail,
-          password: inputPassword,
-        }),
-      });
-
-      if (!res.ok) return;
-
-      navigate("/signin");
-    } catch {
+  const handleSignUp = async (e: React.SubmitEvent) => {
+    e.preventDefault();
+    const res = signUpSchema.safeParse({
+      name,
+      email,
+      password,
+    });
+    if (!res.success) {
+      const errorMessages = res.error.issues
+        .map((err) => err.message)
+        .join("\n");
+      alert(errorMessages);
       return;
     }
+    signUpMutation.mutate(res.data satisfies RequestSignUp);
   };
 
   return (
-    <>
-      <p>welcome to Signup Page</p>
-
+    <form onSubmit={handleSignUp}>
       <input
         type="text"
-        value={inputName}
+        value={name}
         placeholder="Name"
-        onChange={(e) => setInputName(e.target.value)}
+        onChange={(e) => setName(e.target.value)}
       />
       <input
         type="email"
-        value={inputEmail}
+        value={email}
         placeholder="Email"
-        onChange={(e) => setInputEmail(e.target.value)}
+        onChange={(e) => setEmail(e.target.value)}
       />
       <input
         type="password"
-        value={inputPassword}
+        value={password}
         placeholder="Password"
-        onChange={(e) => setInputPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
       />
-
-      <button onClick={handleSignUp}>SignUp</button>
-    </>
+      <Button type="submit">SignUp</Button>
+    </form>
   );
 };
