@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 
 import { Text } from "../components/ui/atoms/Text";
 import { Card } from "../components/ui/atoms/Card";
-import { MainLayout } from "../layouts/MainLayout";
 import { Button } from "../components/ui/atoms/Button";
-import { useSignUp } from "../feature/auth/api/queries";
-import { signUpSchema } from "../feature/auth/authSchema";
 import { Header } from "../components/ui/organisms/Header";
+import { MainLayout } from "../layouts/MainLayout";
 import { TitleInput } from "../components/ui/molecules/TitleInput";
+import { signUpSchema } from "../feature/auth/authSchema";
+import { useMe, useSignUp } from "../feature/auth/api/queries";
 import type { RequestSignUp } from "../feature/auth/api/signUp";
 
 export const SignupPage = () => {
+  const { isSuccess } = useMe();
   const signUpMutation = useSignUp();
 
   const [name, setName] = useState<string>("");
@@ -34,6 +35,7 @@ export const SignupPage = () => {
     }
     signUpMutation.mutate(res.data satisfies RequestSignUp);
   };
+  if (isSuccess) return <Navigate to="/" replace />;
 
   return (
     <MainLayout header={<Header />}>
