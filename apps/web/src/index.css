@@ -4,6 +4,8 @@ html,
 body,
 #root {
   height: 100%;
+  width: 100%;
+  background-color: var(--color-mist-900);
 }
 
 @utility scrollbar-subtle {

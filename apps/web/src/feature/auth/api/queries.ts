@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { signIn } from "./signIn";
+import { signUp } from "./signUp";
+import { signOut } from "./signOut";
 import { fetchMe } from "./fetchMe";
 import { queryKeys } from "../../../api/queryKeys";
-import { signOut } from "./signOut";
 
 export const useMe = () => {
   return useQuery({
@@ -21,6 +22,15 @@ export const useSignIn = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user });
     },
+    onError: (e) => {
+      alert(e.message || "エラーが発生しました。");
+    },
+  });
+};
+
+export const useSignUp = () => {
+  return useMutation({
+    mutationFn: signUp,
     onError: (e) => {
       alert(e.message || "エラーが発生しました。");
     },
