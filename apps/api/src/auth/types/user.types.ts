@@ -1,7 +1,7 @@
 import { UserData } from '@algarden/shared';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma } from '../../../generated/prisma/client';
 
-import { Assert, Jsonify } from 'src/common/types/contract.types';
+import { Assert, Jsonify } from '../../common/types/contract.types';
 
 export type JwtPayload = {
   sub: string;

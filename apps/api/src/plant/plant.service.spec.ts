@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PlantService } from './plant.service';
 import { CreatedEdge, NodeWithChildIds } from './types/plant.types';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { EdgeType, PlantEdge, Prisma } from 'generated/prisma/client';
-import { RandomService } from 'src/common/random/random.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { EdgeType, PlantEdge, Prisma } from '../../generated/prisma/client';
+import { RandomService } from '../common/random/random.service';
 import {
   BASE_HUE,
   P_BURN_MAIN,
   P_BURN_SUB,
   ROOT_SIZE,
 } from './plant.constants';
-import { DateService } from 'src/common/date/date.service';
+import { DateService } from '../common/date/date.service';
 
 describe('PlantService', () => {
   let service: PlantService;

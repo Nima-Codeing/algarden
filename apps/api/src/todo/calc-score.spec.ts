@@ -1,4 +1,4 @@
-import { TodoScore } from 'generated/prisma/client';
+import { TodoScore } from '../../generated/prisma/client';
 import { calcScore } from './calc-score';
 import { CompleteTodo } from './types/todo.types';
 

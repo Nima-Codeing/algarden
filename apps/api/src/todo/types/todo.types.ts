@@ -1,6 +1,6 @@
 import { TodoData } from '@algarden/shared';
-import { Prisma, TodoScore } from 'generated/prisma/client';
-import { Assert, Jsonify } from 'src/common/types/contract.types';
+import { Prisma, TodoScore } from '../../../generated/prisma/client';
+import { Assert, Jsonify } from '../../common/types/contract.types';
 
 export type Score = {
   rank: TodoScore | null;

@@ -5,7 +5,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { hashPassword } from './hash-password';
 import { SigninUserDto } from './dto/signin-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { JwtPayload, UserResponse, userSelect } from './types/user.types';
 
 @Injectable()

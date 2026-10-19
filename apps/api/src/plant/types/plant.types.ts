@@ -1,6 +1,10 @@
 import { PlantData, PlantNodeData, SeedData } from '@algarden/shared';
-import { EdgeType, GrowthStage, Prisma } from 'generated/prisma/client';
-import { Assert, Jsonify } from 'src/common/types/contract.types';
+import {
+  EdgeType,
+  GrowthStage,
+  Prisma,
+} from '../../../generated/prisma/client';
+import { Assert, Jsonify } from '../../common/types/contract.types';
 
 /* -------------- 共有用 -------------- */
 /** ----------- PlantNode ----------- **/

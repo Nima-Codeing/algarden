@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PlantService } from './plant.service';
 import { PlantController } from './plant.controller';
-import { RandomModule } from 'src/common/random/random.module';
-import { DateModule } from 'src/common/date/date.module';
+import { RandomModule } from '../common/random/random.module';
+import { DateModule } from '../common/date/date.module';
 
 @Module({
   controllers: [PlantController],

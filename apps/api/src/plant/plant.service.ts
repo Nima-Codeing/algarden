@@ -5,7 +5,7 @@ import {
   Plant,
   PlantEdge,
   Prisma,
-} from 'generated/prisma/client';
+} from '../../generated/prisma/client';
 import {
   CreatedEdge,
   CreatedNode,
@@ -15,7 +15,7 @@ import {
   PlantNodeResponse,
   plantNodeSelect,
 } from './types/plant.types';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
   BASE_HUE,
   HUE_DECAY_PER_DEPTH,
@@ -30,8 +30,8 @@ import {
   P_LEAF,
   ROOT_SIZE,
 } from './plant.constants';
-import { RandomService } from 'src/common/random/random.service';
-import { DateService } from 'src/common/date/date.service';
+import { RandomService } from '../common/random/random.service';
+import { DateService } from '../common/date/date.service';
 import { calcCoord, CalcCoordResult } from './calc-coord';
 
 @Injectable()

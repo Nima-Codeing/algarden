@@ -1,7 +1,7 @@
 import { GardenData } from '@algarden/shared';
-import { Prisma } from 'generated/prisma/client';
-import { Assert, Jsonify } from 'src/common/types/contract.types';
-import { plantSelect } from 'src/plant/types/plant.types';
+import { Prisma } from '../../../generated/prisma/client';
+import { Assert, Jsonify } from '../../common/types/contract.types';
+import { plantSelect } from '../../plant/types/plant.types';
 
 export const gardenSelect = {
   id: true,

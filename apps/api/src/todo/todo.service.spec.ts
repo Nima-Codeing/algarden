@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TodoService } from './todo.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { GardenService } from 'src/garden/garden.service';
-import { PlantService } from 'src/plant/plant.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { GardenService } from '../garden/garden.service';
+import { PlantService } from '../plant/plant.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
