@@ -5,8 +5,7 @@ const nameSchema = z
   .trim()
   .min(4, { message: "ユーザーネームは4〜12文字にしてください。" })
   .max(12, { message: "ユーザーネームは4〜12文字にしてください。" });
-
-const emailSchema = z
+const signUpEmailSchema = z
   .string()
   .trim()
   .pipe(
@@ -14,8 +13,7 @@ const emailSchema = z
       message: "有効なメールアドレスの形式で入力してください",
     }),
   );
-
-const passwordSchema = z
+const signUpPasswordSchema = z
   .string()
   .trim()
   .min(8, { message: "パスワードは8文字以上で入力してください" })
@@ -24,13 +22,26 @@ const passwordSchema = z
       "パスワードには英小文字、英大文字、数字、記号を各1文字以上含めてください",
   });
 
-export const signInUserSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-});
+const signInEmailSchema = z
+  .string()
+  .trim()
+  .min(1, { message: "メールアドレスを入力してください。" })
+  .pipe(
+    z.email({
+      message: "メールアドレスの形式で入力してください。",
+    }),
+  );
+const signInPasswordSchema = z
+  .string()
+  .trim()
+  .min(1, { message: "パスワードを入力してください。" });
 
-export const signUpSchema = z.object({
+export const signUpUserSchema = z.object({
   name: nameSchema,
-  email: emailSchema,
-  password: passwordSchema,
+  email: signUpEmailSchema,
+  password: signUpPasswordSchema,
+});
+export const signInUserSchema = z.object({
+  email: signInEmailSchema,
+  password: signInPasswordSchema,
 });
