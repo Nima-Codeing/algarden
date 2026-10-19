@@ -7,7 +7,7 @@ import { Button } from "../components/ui/atoms/Button";
 import { Header } from "../components/ui/organisms/Header";
 import { MainLayout } from "../layouts/MainLayout";
 import { TitleInput } from "../components/ui/molecules/TitleInput";
-import { signUpSchema } from "../feature/auth/authSchema";
+import { signUpUserSchema } from "../feature/auth/authSchema";
 import { useMe, useSignUp } from "../feature/auth/api/queries";
 import type { RequestSignUp } from "../feature/auth/api/signUp";
 
@@ -23,7 +23,7 @@ export const SignupPage = () => {
 
   const handleSignUp = (e: React.SubmitEvent) => {
     e.preventDefault();
-    const res = signUpSchema.safeParse({
+    const res = signUpUserSchema.safeParse({
       name,
       email,
       password,
