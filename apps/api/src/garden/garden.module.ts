@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { GardenService } from './garden.service';
 import { GardenController } from './garden.controller';
-import { DateModule } from 'src/common/date/date.module';
-import { PlantModule } from 'src/plant/plant.module';
+import { DateModule } from '../common/date/date.module';
+import { PlantModule } from '../plant/plant.module';
 
 @Module({
   controllers: [GardenController],

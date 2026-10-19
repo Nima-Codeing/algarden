@@ -7,7 +7,7 @@ import {
   SimulationNodeDatum,
 } from 'd3-force';
 
-import { PlantEdge, PlantNode } from 'generated/prisma/client';
+import { PlantEdge, PlantNode } from '../../generated/prisma/client';
 import {
   LAYOUT_ALPHA,
   LAYOUT_CHARGE_STRENGTH,

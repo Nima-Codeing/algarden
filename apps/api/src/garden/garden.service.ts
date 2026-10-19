@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { DateService } from 'src/common/date/date.service';
-import { PlantService } from 'src/plant/plant.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { DateService } from '../common/date/date.service';
+import { PlantService } from '../plant/plant.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { gardenSelect, GardenWithPlants } from './types/garden.types';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 

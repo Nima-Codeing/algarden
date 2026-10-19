@@ -1,8 +1,8 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 
-import { hashPassword } from 'src/auth/hash-password';
+import { hashPassword } from '../src/auth/hash-password';
 import { buildLargeGarden } from './fixtures/large-garden';
-import { DateService } from 'src/common/date/date.service';
+import { DateService } from '../src/common/date/date.service';
 import { EdgeType, PrismaClient } from '../generated/prisma/client';
 
 // DB Access setting

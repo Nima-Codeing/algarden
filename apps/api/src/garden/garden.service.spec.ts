@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GardenService } from './garden.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { DateService } from 'src/common/date/date.service';
-import { PlantService } from 'src/plant/plant.service';
-import { Prisma } from 'generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { DateService } from '../common/date/date.service';
+import { PlantService } from '../plant/plant.service';
+import { Prisma } from '../../generated/prisma/client';
 import { gardenSelect } from './types/garden.types';
 
 describe('GardenService', () => {

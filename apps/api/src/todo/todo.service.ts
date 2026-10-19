@@ -5,14 +5,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { PrismaService } from 'src/prisma/prisma.service';
-import { GardenService } from 'src/garden/garden.service';
-import { PlantService } from 'src/plant/plant.service';
-import { PlantNodeResponse } from 'src/plant/types/plant.types';
+import { PrismaService } from '../prisma/prisma.service';
+import { GardenService } from '../garden/garden.service';
+import { PlantService } from '../plant/plant.service';
+import { PlantNodeResponse } from '../plant/types/plant.types';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoTitleDto } from './dto/update-todo-title.dto';
 import { UpdateTodoDurationDto } from './dto/update-todo-duration.dto';
-import { Prisma, Todo } from 'generated/prisma/client';
+import { Prisma, Todo } from '../../generated/prisma/client';
 import { calcScore } from './calc-score';
 import {
   CompleteTodo,

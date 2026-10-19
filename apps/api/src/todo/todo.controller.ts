@@ -13,12 +13,12 @@ import { AuthGuard } from '@nestjs/passport';
 
 import { TodoService } from './todo.service';
 import { TodoResponse } from './types/todo.types';
-import { PlantNodeResponse } from 'src/plant/types/plant.types';
+import { PlantNodeResponse } from '../plant/types/plant.types';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoTitleDto } from './dto/update-todo-title.dto';
 import { UpdateTodoDurationDto } from './dto/update-todo-duration.dto';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { Todo } from 'generated/prisma/client';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Todo } from '../../generated/prisma/client';
 
 @Controller('todos')
 @UseGuards(AuthGuard('jwt'))
