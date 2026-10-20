@@ -9,5 +9,11 @@ export default defineConfig({
     fs: {
       allow: ["../.."],
     },
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000", // 転送先
+        rewrite: (path) => path.replace(/^\/api/, ""), // 先頭 /api 削除
+      },
+    },
   },
 });
