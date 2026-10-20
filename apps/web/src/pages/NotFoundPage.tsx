@@ -1,9 +1,19 @@
+import { Text } from "../components/ui/atoms/Text";
+import { Header } from "../components/ui/organisms/Header";
+import { MainLayout } from "../layouts/MainLayout";
+
 // src/pages/NotFound.jsx
 export const NotFoundPage = () => {
   return (
-    <div className="text-center w-auto p-40">
-      <h1>404 - Page Not Found</h1>
-      <p>お探しのページは存在しません。</p>
-    </div>
+    <MainLayout header={<Header />}>
+      <div className="flex flex-col items-center justify-center h-full">
+        <Text className="flex items-start text-xl font-bold">
+          404 - Page Not Found
+        </Text>
+        <Text className="flex items-start text-lg font-semibold">
+          お探しのページは存在しません。
+        </Text>
+      </div>
+    </MainLayout>
   );
 };
