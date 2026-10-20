@@ -20,6 +20,7 @@ import {
   TodoResponse,
   todoSelect,
 } from './types/todo.types';
+import { COMPLETE_TX_TIMEOUT_MS } from './todo.constants';
 
 @Injectable()
 export class TodoService {
@@ -292,22 +293,25 @@ export class TodoService {
       score.nodeCount,
     );
 
-    return await this.prismaService.$transaction(async (tx) => {
-      const newNodes = await this.plantService.grow(
-        tx,
-        plantId,
-        currentTodo.id,
-        score.nodeCount,
-        growthStat,
-      );
-      await this.updateUponComplete(
-        tx,
-        currentTodo.id,
-        score,
-        completeTodo.completedAt,
-      );
+    return await this.prismaService.$transaction(
+      async (tx) => {
+        const newNodes = await this.plantService.grow(
+          tx,
+          plantId,
+          currentTodo.id,
+          score.nodeCount,
+          growthStat,
+        );
+        await this.updateUponComplete(
+          tx,
+          currentTodo.id,
+          score,
+          completeTodo.completedAt,
+        );
 
-      return newNodes;
-    });
+        return newNodes;
+      },
+      { timeout: COMPLETE_TX_TIMEOUT_MS },
+    );
   }
 }
