@@ -2,7 +2,7 @@ name: Maintenance demo
 
 on:
   schedule:
-    - cron: "0 0 1 * *" # 毎月1日 0:00（UTC）＝ 9:00（日本時間）
+    - cron: "17 0 1 * *" # 毎月1日 0:17（UTC）＝ 9:17（日本時間）
   workflow_dispatch: # Githubからの手動実行
 
 concurrency:
