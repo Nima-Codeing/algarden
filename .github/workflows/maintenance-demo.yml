@@ -1,0 +1,38 @@
+name: Maintenance demo
+
+on:
+  schedule:
+    - cron: "0 0 1 * *" # 毎月1日 0:00（UTC）＝ 9:00（日本時間）
+  workflow_dispatch: # Githubからの手動実行
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false # 重複実行時、実行中処理を優先
+
+permissions:
+  contents: read
+
+jobs:
+  grow-demo-garden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Grow the demo garden
+        working-directory: apps/api
+        run: npx tsx scripts/maintenance-demo.ts
+        env:
+          BASE_URL: https://algarden.vercel.app/api
+          DEMO_EMAIL: ${{ secrets.DEMO_EMAIL }}
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
