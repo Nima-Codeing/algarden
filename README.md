@@ -1,34 +1,29 @@
 # ALGARDEN
 
-Todoを完了すると、アルゴリズムに従ってノードネットワークを形成していくWebアプリです。<br>
-現在スマホ対応はしていないため、PCにてご確認ください。
+Todo を完了すると、アルゴリズムに従ってノードネットワークを形成していく Web アプリです。<br>
+現在スマホ対応はしていないため、**PC にてご確認ください。**
 
 <img src="docs/images/algarden.png" alt="育ったデモの庭" width="800">
 
-左の黒い背景が「庭」、右が「Todoリスト」です。<br>
-Todo を1つ完了するたびに、庭に「ノードネットワーク」が形成されます。
+左の黒い背景が「庭」、右が「Todo リスト」です。
 
 ## デモ
 
-**https://algarden.vercel.app** にアクセスし、次のアカウントでサインインが可能です（登録は不要です）。
+**https://algarden.vercel.app** にアクセスし、次のアカウントでサインインが可能です（適当なメールアドレスでの登録でも問題ありません）。
 
 - メール：`demo@example.com`
 - パスワード：`Demo.1234`
-
-<br>
 
 > [!NOTE]
 >
 > - 全員で同じアカウントを使います。タイマーが動いたままの Todo があると、新しい Todo を開始できません。<br>
 > - そのときは、その Todo のチェックボックスにチェックを入れて完了してください。<br>
-> - 庭は毎月1日 9:00（日本時間）に新しくなります。自動で育て直すため、その後の数十分は庭が空か、育っている途中な可能性があります。
-
-<br>
+> - 庭は 毎月1日 9:00（日本時間）に新しくなります。自動で育て直すため、その後の数十分は庭が空または、育っている途中の可能性があります。
 
 ## 開発の背景
 
-普段からチェックリストやTodoアプリをよく使っていますが、完了したタスクは一覧から消えるだけで何も残らず、物足りなさを感じていました。<br>
-ゲーミフィケーションを取り入れたTodoアプリもいくつかありますが、自分にはあまりしっくりきませんでした。<br>
+普段からチェックリストや Todo アプリをよく使っていますが、完了したタスクは一覧から消えるだけで何も残らず、物足りなさを感じていました。<br>
+ゲーミフィケーションを取り入れた Todo アプリもいくつかありますが、自分にはあまりしっくりきませんでした。<br>
 そこで、もともと面白さや美しさを感じていたアルゴリズムを使って、自分で作ることにしました。<br>
 このアプリでは、Todo を完了するたびに庭のノードネットワークが育ち、積み重ねが目に見える形で残ります。目標時間に近い時間で終えるほど多くのノードが生えるので、作業時間を見積もる練習にもなります。
 
@@ -41,17 +36,17 @@ Todo を1つ完了するたびに、庭に「ノードネットワーク」が�
 
 ## 技術スタック
 
-| Category          | Technology Stack                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------- |
-| Frontend          | TypeScript 5, React 19, Vite 8, React Router 7, TanStack Query 5, Tailwind CSS 4, Zod 4 |
-| Backend           | TypeScript 5, NestJS 11, Prisma 7, Passport (JWT), argon2, class-validator, d3-force 2  |
-| Database          | PostgreSQL 16                                                                         |
-| Infrastructure    | Vercel (web / api), Neon                                                              |
-| CI/CD             | GitHub Actions, Vercel (Git integration)                                              |
-| Testing           | Jest 30                                                                               |
-| Tools             | Insomnia (API), draw.io (diagrams)                                                    |
-| Environment setup | Docker (PostgreSQL), Node.js 24, Turborepo 2, npm workspaces                          |
-| Linter / Formatter| ESLint, Prettier                                                                      |
+| Category           | Technology Stack                                                                        |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| Frontend           | TypeScript 5, React 19, Vite 8, React Router 7, TanStack Query 5, Tailwind CSS 4, Zod 4 |
+| Backend            | TypeScript 5, NestJS 11, Prisma 7, Passport (JWT), argon2, class-validator, d3-force 2  |
+| Database           | PostgreSQL 16                                                                           |
+| Infrastructure     | Vercel (web / api), Neon                                                                |
+| CI/CD              | GitHub Actions, Vercel (Git integration)                                                |
+| Testing            | Jest 30                                                                                 |
+| Tools              | Insomnia (API), draw.io (diagrams)                                                      |
+| Environment setup  | Docker (PostgreSQL), Node.js 24, Turborepo 2, npm workspaces                            |
+| Linter / Formatter | ESLint, Prettier                                                                        |
 
 ## アーキテクチャ
 
@@ -61,7 +56,7 @@ Todo を1つ完了するたびに、庭に「ノードネットワーク」が�
 
 - サインアップ
 - サインイン
-- Todoリスト
+- Todo リスト
   - 作成・編集・削除
   - 目標時間の設定
   - スコア判定
@@ -73,17 +68,15 @@ Todo を1つ完了するたびに、庭に「ノードネットワーク」が�
   - ノード配置の計算
   - ノードの 成長・延焼 アルゴリズム
 
-<br>
-
-| タスク完了後、ノードが成長している画面 |
-| :--- |
+| タスク完了後、ノードが成長している画面                                                       |
+| :------------------------------------------------------------------------------------------- |
 | <img src="docs/images/grow-plant.gif" alt="Todo を完了するとノードが生える様子" width="800"> |
+
 ## ER 図
 
 ノードネットワークは、点の表（PlantNode）と線の表（PlantEdge）に分けて保存しています。親子のつながりは、PlantNode の parentId にも持たせています。
 
 <details>
-
 
 <summary>ER 図を開く（主なカラムのみ。すべての定義は <a href="apps/api/prisma/schema.prisma">schema.prisma</a>）</summary>
 
@@ -177,14 +170,14 @@ erDiagram
 - 隕石：まれにノードが降ってきて、庭に単独で残ったり、既存のノードネットワークとつながったりする
   - 隕石が「第二の種」になり、その先が別のアルゴリズムで育つ、といった展開も検討中
 - 接ぎ木：離れたノード同士を、自分の手で線でつなぐ・切る
-- ショップ：Todoの達成で貯めたポイントで、種やアイテムを手に入れる
+- ショップ：Todo の達成で貯めたポイントで、種やアイテムを手に入れる
 - 1つの庭に複数の種を植え、ノードネットワークをいくつも育てる
 - ほかのアルゴリズムを足し、期間の始めに選べるようにする
 
 **品質と運用**
 
 - 配置の計算を新しいノードの周りに絞り、ノードが増えても速く保つ
-- 実際のDBを使ったe2eテストと、画面のテスト
-- インフラをGCPまたはAWSへ移す
+- 実際のDBを使った e2e テストと、画面のテスト
+- インフラを GCP または AWS へ移す
 
 ほかの予定は [Milestone「MVP後」](https://github.com/Nima-Codeing/algarden/milestone/20) にまとめています。
