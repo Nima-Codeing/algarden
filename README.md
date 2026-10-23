@@ -43,11 +43,24 @@ Todo を1つ完了するたびに、庭に「ノードネットワーク」が�
 
 <img src="docs/images/architecture.drawio.png" alt="ブラウザ → Vercel（web）→ rewrites → Vercel Functions（api）→ Neon の構成図" width="800">
 
+## 機能
 
-## ローカルでの起動方法
+- サインアップ
+- サインイン
+- Todoリスト
+  - 作成・編集・削除
+  - 目標時間の設定
+  - スコア判定
+  - タイマー（同時稼働は1つまで）
+- 庭
+  - 庭の月次リセット
+  - ノードネットワークを画面に収める自動フィット
+- ノードネットワーク
+  - ノード配置の計算
+  - ノードの 成長・延焼 アルゴリズム
 
-後々追記
+<br>
 
-## ライセンス
-
-このプロジェクトは [MIT License](./LICENSE) の下で公開されている。
+| タスク完了後、ノードが成長している画面 |
+| :--- |
+| <img src="docs/images/grow-plant.gif" alt="Todo を完了するとノードが生える様子" width="800"> |
