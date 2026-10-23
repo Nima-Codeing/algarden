@@ -19,3 +19,4 @@ yarn-debug.log*
 
 # private docs
 docs/*
+!docs/images/
