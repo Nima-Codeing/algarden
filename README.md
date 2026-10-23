@@ -23,27 +23,17 @@
 
 ## 技術スタック
 
-| 領域 | 技術 |
-|------|------|
-| フロントエンド | Vite, React, TypeScript|
-| ルーティング | React Router |
-| 状態管理 | Zustand |
-| スタイリング | Tailwind CSS |
-| アニメーション / 描画 | SVG, Framer Motion（導入予定） |
-| バックエンド | NestJS, TypeScript |
-| 認証 | JWT (Passport) + HttpOnly Cookie |
-| ORM | Prisma 7 |
-| DB | PostgreSQL（開発: Docker / 本番: Supabase） |
-| モノレポ | Turborepo |
-| インフラ | Vercel (フロント), Railway (バック) |
-
-## 技術選定の理由（抜粋）
-
-### Vite + React
-このアプリの主な機能は、ノードネットワークが動いて育つアニメーションです。ログイン後に使うアプリなので検索エンジン対策（SEO）は不要で、Next.js のような SSR フレームワークの強みが活きません。それよりもゲーミフィケーションの観点から、画面の動きの滑らかさを優先したかったため、軽量な Vite + React を選びました。将来、庭をシェアする機能などで SEO が必要になったら Next.js への移行を検討します。
-
-### Turborepo
-フロントエンドとバックエンドで、データの「型」を共通で使いたかったため、両方を1つのリポジトリにまとめる Turborepo を採用しました。型を1か所（packages/shared）にまとめておくことで、「バックの API が返すデータの形」と「フロントが受け取る形」がズレるのを防げます。片方を直したらもう片方も直す必要がある、という抜け漏れをビルド時に気づける状態を作っています。
+| Category          | Technology Stack                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| Frontend          | TypeScript 5, React 19, Vite 8, React Router 7, TanStack Query 5, Tailwind CSS 4, Zod 4 |
+| Backend           | TypeScript 5, NestJS 11, Prisma 7, Passport (JWT), argon2, class-validator, d3-force 2  |
+| Database          | PostgreSQL 16                                                                         |
+| Infrastructure    | Vercel (web / api), Neon                                                              |
+| CI/CD             | GitHub Actions, Vercel (Git integration)                                              |
+| Testing           | Jest 30                                                                               |
+| Tools             | Insomnia (API), draw.io (diagrams)                                                    |
+| Environment setup | Docker (PostgreSQL), Node.js 24, Turborepo 2, npm workspaces                          |
+| Linter / Formatter| ESLint, Prettier                                                                      |
 
 ## アーキテクチャ
 
@@ -71,7 +61,9 @@ algarden/                  # Turborepo モノレポ
 ```
 
 ## ローカルでの起動方法
+
 後々追記
 
 ## ライセンス
+
 このプロジェクトは [MIT License](./LICENSE) の下で公開されている。
