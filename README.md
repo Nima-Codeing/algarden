@@ -64,3 +64,86 @@ Todo を1つ完了するたびに、庭に「ノードネットワーク」が�
 | タスク完了後、ノードが成長している画面 |
 | :--- |
 | <img src="docs/images/grow-plant.gif" alt="Todo を完了するとノードが生える様子" width="800"> |
+## ER 図
+
+ノードネットワークは、点の表（PlantNode）と線の表（PlantEdge）に分けて保存しています。親子のつながりは、PlantNode の parentId にも持たせています。
+
+<details>
+
+
+<summary>ER 図を開く（主なカラムのみ。すべての定義は <a href="apps/api/prisma/schema.prisma">schema.prisma</a>）</summary>
+
+```mermaid
+erDiagram
+    User ||--o{ Garden : "owns"
+    User ||--o{ Todo : "owns"
+    Garden ||--o{ Todo : "contains"
+    Garden ||--o{ Seed : "contains"
+    Garden ||--o{ Plant : "contains"
+    Seed ||--o| Plant : "grows into"
+    Plant ||--|{ PlantNode : "has"
+    Plant ||--o{ PlantEdge : "has"
+    Todo |o--o{ PlantNode : "grows"
+    PlantNode |o--o{ PlantNode : "parent of"
+    PlantNode ||--o{ PlantEdge : "from"
+    PlantNode ||--o{ PlantEdge : "to"
+
+    User {
+        uuid id PK
+        varchar name
+        varchar email UK
+        varchar password "argon2 のハッシュ"
+    }
+    Garden {
+        uuid id PK
+        uuid userId FK
+        timestamptz startedAt
+        timestamptz endAt "userId と組で一意"
+    }
+    Todo {
+        uuid id PK
+        uuid userId FK
+        uuid gardenId FK
+        varchar title
+        boolean isCompleted
+        int targetDuration "目標時間（秒）・null 可"
+        TodoScore score "S〜D・null 可"
+        timestamptz startedAt "null 可"
+        timestamptz completedAt "null 可"
+    }
+    Seed {
+        uuid id PK
+        uuid gardenId FK
+        float x
+        float y
+        SeedType seedType
+        boolean isPlanted
+    }
+    Plant {
+        uuid id PK
+        uuid gardenId FK
+        uuid seedId FK, UK
+        int nodeCount
+        GrowthStage growthStage
+    }
+    PlantNode {
+        uuid id PK
+        uuid plantId FK
+        uuid parentId FK "根のノードは null"
+        uuid todoId FK "根のノードは null"
+        float x
+        float y
+        float hue
+        float size
+        int depth
+    }
+    PlantEdge {
+        uuid id PK
+        uuid plantId FK
+        uuid fromId FK
+        uuid toId FK
+        EdgeType edgeType "SKELETON：親子 / SPREAD：近くのノード"
+    }
+```
+
+</details>
