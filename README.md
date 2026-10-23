@@ -37,28 +37,8 @@
 
 ## アーキテクチャ
 
-Turborepo によるモノレポ構成で、フロントエンドとバックエンドを単一リポジトリ内で管理している。
+<img src="docs/images/architecture.drawio.png" alt="ブラウザ → Vercel（web）→ rewrites → Vercel Functions（api）→ Neon の構成図" width="800">
 
-```
-algarden/                  # Turborepo モノレポ
-├── apps/
-│   ├── web/               # Vite + React フロントエンド → Vercel
-│   └── api/               # NestJS バックエンド → Railway
-├── packages/              # 共有パッケージ（型定義など）
-└── turbo.json
-```
-
-リクエストの流れは以下の通り。フロントとバックが別ドメインに配置されるため、認証は Cookie + CORS のクロスドメイン構成で成立させている。
-
-```
-[ Browser ]
-    │  HttpOnly Cookie (JWT) / credentials: true / SameSite=Lax
-    ▼
-[ Vercel: React SPA ] ──── API リクエスト (CORS) ────▶ [ Railway: NestJS ]
-                                                          │
-                                                          ▼  Prisma 7
-                                                     [ PostgreSQL ]
-```
 
 ## ローカルでの起動方法
 
