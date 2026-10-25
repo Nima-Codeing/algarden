@@ -22,3 +22,4 @@ Michael Nygard の ADR の形に、「検討した案」を足している。
 | 番号 | 判断 | 状態 |
 | --- | --- | --- |
 | [0001](0001-vite-react-spa.md) | フロントエンドを Vite + React の SPA にする | 採用 |
+| [0002](0002-nestjs.md) | バックエンドを NestJS にする | 採用 |
