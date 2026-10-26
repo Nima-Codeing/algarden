@@ -27,3 +27,4 @@ Michael Nygard の ADR の形に、「検討した案」を足している。
 | [0004](0004-forest-fire.md) | 庭の成長に Forest Fire の延焼を入れる | 採用 |
 | [0005](0005-flash-point-height.md) | 着火点は「葉からの高さ」で重みを付けて選ぶ | 採用 |
 | [0006](0006-postpone-mutation.md) | 突然変異を v1 から外し、v1.1 に回す | 採用 |
+| [0007](0007-d3-force-coordinates.md) | ノードの座標は、サーバーで d3-force を使って計算する | 採用 |
