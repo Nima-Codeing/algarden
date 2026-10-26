@@ -25,3 +25,4 @@ Michael Nygard の ADR の形に、「検討した案」を足している。
 | [0002](0002-nestjs.md) | バックエンドを NestJS にする | 採用 |
 | [0003](0003-prisma-orm.md) | ORM を Prisma にする | 採用 |
 | [0004](0004-forest-fire.md) | 庭の成長に Forest Fire の延焼を入れる | 採用 |
+| [0005](0005-flash-point-height.md) | 着火点は「葉からの高さ」で重みを付けて選ぶ | 採用 |
