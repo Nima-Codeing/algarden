@@ -24,3 +24,4 @@ Michael Nygard の ADR の形に、「検討した案」を足している。
 | [0001](0001-vite-react-spa.md) | フロントエンドを Vite + React の SPA にする | 採用 |
 | [0002](0002-nestjs.md) | バックエンドを NestJS にする | 採用 |
 | [0003](0003-prisma-orm.md) | ORM を Prisma にする | 採用 |
+| [0004](0004-forest-fire.md) | 庭の成長に Forest Fire の延焼を入れる | 採用 |
