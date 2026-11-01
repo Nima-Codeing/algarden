@@ -122,6 +122,34 @@ describe('TodoService', () => {
       expect(plantMock.getAllPlants).toHaveBeenCalledWith('garden-prev');
       expect(gardenMock.getActive).not.toHaveBeenCalled();
     });
+    it('異常系: 重複実行時、トランザクションエラーでgrowが走らないこと', async () => {
+      prismaMock.todo.findFirstOrThrow.mockResolvedValueOnce({
+        id: 'todo-1',
+        gardenId: 'garden-prev',
+        startedAt: new Date(),
+        completedAt: null,
+        targetDuration: null,
+      });
+      plantMock.getAllPlants.mockResolvedValueOnce([{ id: 'plant-1' }]);
+      plantMock.calcGrowthStage.mockResolvedValueOnce({
+        curStage: 'SPROUT',
+        isPromotion: false,
+      });
+      prismaMock.todo.update.mockRejectedValueOnce(prismaError('P2025'));
+
+      const promise = service.complete('todo-1', 'user-1');
+
+      await expect(promise).rejects.toBeInstanceOf(NotFoundException);
+      await expect(promise).rejects.toThrow(
+        '完了できるTODOが見つかりませんでした。',
+      );
+      expect(prismaMock.todo.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'todo-1', completedAt: null },
+        }),
+      );
+      expect(plantMock.grow).not.toHaveBeenCalled();
+    });
   });
 
   describe('startTimer', () => {

@@ -171,14 +171,24 @@ export class TodoService {
     score: Score,
     completedAt: Date,
   ): Promise<Todo> {
-    return await tx.todo.update({
-      where: { id },
-      data: {
-        score: score.rank,
-        isCompleted: true,
-        completedAt: completedAt,
-      },
-    });
+    try {
+      return await tx.todo.update({
+        where: {
+          id,
+          completedAt: null,
+        },
+        data: {
+          score: score.rank,
+          isCompleted: true,
+          completedAt: completedAt,
+        },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('完了できるTODOが見つかりませんでした。');
+      }
+      throw e;
+    }
   }
 
   /**
@@ -295,21 +305,19 @@ export class TodoService {
 
     return await this.prismaService.$transaction(
       async (tx) => {
-        const newNodes = await this.plantService.grow(
-          tx,
-          plantId,
-          currentTodo.id,
-          score.nodeCount,
-          growthStat,
-        );
         await this.updateUponComplete(
           tx,
           currentTodo.id,
           score,
           completeTodo.completedAt,
         );
-
-        return newNodes;
+        return await this.plantService.grow(
+          tx,
+          plantId,
+          currentTodo.id,
+          score.nodeCount,
+          growthStat,
+        );
       },
       { timeout: COMPLETE_TX_TIMEOUT_MS },
     );
