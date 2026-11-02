@@ -37,7 +37,7 @@ export const TodoItem = ({
           type="checkbox"
           className="w-4 h-4"
           checked={isCompleted}
-          disabled={isCompleted || isCompleteDisabled}
+          disabled={isCompleteDisabled}
           onChange={onComplete}
         />
       </div>
