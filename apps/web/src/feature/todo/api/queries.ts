@@ -99,8 +99,9 @@ export const useCompleteTodo = () => {
 
   return useMutation({
     mutationFn: completeTodo,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.todos });
+    onSuccess: async () => {
+      // NOTE: Todo完了処理後のデータ取得中の重複処理阻止のため
+      await queryClient.invalidateQueries({ queryKey: queryKeys.todos });
       queryClient.invalidateQueries({ queryKey: queryKeys.gardens });
     },
     onError: (e) => {

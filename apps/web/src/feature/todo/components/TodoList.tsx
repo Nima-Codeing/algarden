@@ -87,6 +87,7 @@ export const TodoList = ({ className = "" }: { className?: string }) => {
           const isMeasuring = isTodoMeasuring(todo);
           // NOTE: このTodoが計測中なら、全体（isAnyTodoMeasuring）も必ずtrueになる
           const isStartDisabled = todo.isCompleted || isAnyTodoMeasuring;
+          const isCompleteDisabled = todo.isCompleted || completeMutation.isPending;
 
           return (
             <li key={todo.id}>
@@ -113,6 +114,7 @@ export const TodoList = ({ className = "" }: { className?: string }) => {
                     targetDurationMinutes={todo.targetDurationMinutes}
                     isCompleted={todo.isCompleted}
                     isStartDisabled={isStartDisabled}
+                    isCompleteDisabled={isCompleteDisabled}
                     onComplete={() => completeMutation.mutate(todo.id)}
                     onStart={() => startMutation.mutate(todo.id)}
                     onEditMode={() => openEdit(todo.id)}
