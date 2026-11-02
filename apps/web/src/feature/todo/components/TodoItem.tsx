@@ -8,6 +8,7 @@ type Props = {
   targetDurationMinutes: number | null;
   isCompleted: boolean;
   isStartDisabled: boolean;
+  isCompleteDisabled: boolean;
   className?: string;
   onComplete: () => void;
   onStart: () => void;
@@ -20,6 +21,7 @@ export const TodoItem = ({
   targetDurationMinutes,
   isCompleted,
   isStartDisabled,
+  isCompleteDisabled,
   className = "",
   onComplete,
   onStart,
@@ -35,7 +37,7 @@ export const TodoItem = ({
           type="checkbox"
           className="w-4 h-4"
           checked={isCompleted}
-          disabled={isCompleted}
+          disabled={isCompleted || isCompleteDisabled}
           onChange={onComplete}
         />
       </div>

@@ -113,6 +113,7 @@ export const TodoList = ({ className = "" }: { className?: string }) => {
                     targetDurationMinutes={todo.targetDurationMinutes}
                     isCompleted={todo.isCompleted}
                     isStartDisabled={isStartDisabled}
+                    isCompleteDisabled={completeMutation.isPending}
                     onComplete={() => completeMutation.mutate(todo.id)}
                     onStart={() => startMutation.mutate(todo.id)}
                     onEditMode={() => openEdit(todo.id)}
