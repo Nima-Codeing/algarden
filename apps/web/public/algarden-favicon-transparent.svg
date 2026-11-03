@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <line x1="256" y1="357.23" x2="256" y2="83.69" stroke="#00CBDD" stroke-width="34.46" stroke-linecap="round"/>
+  <line x1="256" y1="357.23" x2="136.46" y2="144" stroke="#9FD700" stroke-width="34.46" stroke-linecap="round"/>
+  <line x1="256" y1="357.23" x2="375.54" y2="144" stroke="#9FD700" stroke-width="34.46" stroke-linecap="round"/>
+  <line x1="77.23" y1="264.62" x2="136.46" y2="144" stroke="#00CBDD" stroke-width="34.46" stroke-linecap="round"/>
+  <line x1="136.46" y1="144" x2="256" y2="83.69" stroke="#00CBDD" stroke-width="34.46" stroke-linecap="round"/>
+  <line x1="256" y1="83.69" x2="375.54" y2="144" stroke="#00CBDD" stroke-width="34.46" stroke-linecap="round"/>
+  <line x1="375.54" y1="144" x2="434.77" y2="264.62" stroke="#00CBDD" stroke-width="34.46" stroke-linecap="round"/>
+  <circle cx="256" cy="357.23" r="103.38" fill="#F4F5F5" stroke="#007BC5" stroke-width="34.46"/>
+  <circle cx="77.23" cy="264.62" r="45.23" fill="#00CBDD"/>
+  <circle cx="136.46" cy="144" r="45.23" fill="#9FD700"/>
+  <circle cx="256" cy="83.69" r="49.54" fill="#00CBDD"/>
+  <circle cx="375.54" cy="144" r="45.23" fill="#9FD700"/>
+  <circle cx="434.77" cy="264.62" r="45.23" fill="#00CBDD"/>
+  <path d="M256 289.69 Q263.84 348.45 316.31 357.23 Q263.84 366.01 256 424.78 Q248.16 366.01 195.69 357.23 Q248.16 348.45 256 289.69Z" fill="#007BC5"/>
+</svg>
