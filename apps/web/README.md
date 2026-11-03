@@ -1,73 +1,51 @@
-# React + TypeScript + Vite
+# web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ALGARDEN のフロントエンドです。Todo リストと庭を表示する React の SPA です。
 
-Currently, two official plugins are available:
+- React 19 / Vite 8 / React Router 7 / TanStack Query 5 / Tailwind CSS 4
+- 本番は Vercel で配信しています。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ローカルでの起動
 
-## React Compiler
+先に [api](../api/README.md) を起動してから、`apps/web` で次を実行します。環境変数は使っていません。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`http://localhost:5173` で開きます。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+リポジトリのルートで `npm run dev` を実行すると、web と api を同時に起動できます。
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## API との通信
+
+API へのリクエストは、すべて `/api` で始まるパスに送ります（`src/api/client.ts`）。転送の仕組みは環境によって変わり、どちらも先頭の `/api` を外して api に渡します。そのため、ブラウザから見ると web と同じオリジンへのリクエストになります。
+
+| 環境     | 仕組み                              | 転送先                  |
+| -------- | ----------------------------------- | ----------------------- |
+| ローカル | Vite の proxy（`vite.config.ts`）   | `http://localhost:3000` |
+| 本番     | Vercel の rewrites（`vercel.json`） | api のデプロイ先        |
+
+API の型は `packages/shared`（`@algarden/shared`）を api と共有しています。
+
+## ディレクトリ構成
+
+| パス                | 内容                                                                 |
+| ------------------- | -------------------------------------------------------------------- |
+| `src/pages`         | ページ（サインイン・サインアップ・ホーム）                           |
+| `src/feature`       | 機能ごとの API 呼び出し・コンポーネント・スキーマ（auth・todo・garden） |
+| `src/api`           | fetch のラッパー、TanStack Query の設定                              |
+| `src/routes`        | 未サインインなら `/signin` に戻すルート（`ProtectedRoute`）          |
+| `src/layouts`       | 共通レイアウト                                                       |
+| `src/components/ui` | 汎用の UI 部品（atoms・molecules・organisms）                        |
+| `src/common`        | 定数・ユーティリティ                                                 |
+
+## スクリプト
+
+| コマンド            | 内容                 |
+| ------------------- | -------------------- |
+| `npm run dev`       | 開発サーバーの起動   |
+| `npm run build`     | 型チェックとビルド   |
+| `npm run lint`      | ESLint               |
+| `npm run typecheck` | 型チェック           |
+| `npm run preview`   | ビルド結果の確認     |
