@@ -1,98 +1,101 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# api
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+ALGARDEN のバックエンドです。認証・Todo・庭（ノードネットワーク）の API を提供します。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- NestJS 11 / Prisma 7 / PostgreSQL 16
+- 本番は Vercel Functions で動かし、DB は Neon を使っています。
 
-## Description
+## ローカルでの起動
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+リポジトリのルートで実行します。
 
-## Project setup
+1. 依存関係を入れる。
 
-```bash
-$ npm install
-```
+   ```bash
+   npm install
+   ```
 
-## Compile and run the project
+2. PostgreSQL を起動する。
 
-```bash
-# development
-$ npm run start
+   ```bash
+   docker compose up -d
+   ```
 
-# watch mode
-$ npm run start:dev
+`apps/api` で実行します。
 
-# production mode
-$ npm run start:prod
-```
+3. `.env.sample` をコピーして `.env` を作る
 
-## Run tests
+   ```bash
+   cp .env.sample .env
+   ```
 
-```bash
-# unit tests
-$ npm run test
+4. マイグレーションとシードを実行する
 
-# e2e tests
-$ npm run test:e2e
+   ```bash
+   npx prisma migrate dev
+   npx prisma db seed
+   ```
 
-# test coverage
-$ npm run test:cov
-```
+5. 起動する（`http://localhost:3000`）
 
-## Deployment
+   ```bash
+   npm run start:dev
+   ```
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+リポジトリのルートで `npm run dev` を実行すると、web と api を同時に起動できます。
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 環境変数
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+| 変数           | 内容                                                                                          |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| `DATABASE_URL` | PostgreSQL の接続先。Docker の場合は `postgresql://algarden:algarden@localhost:5433/algarden` |
+| `JWT_SECRET`   | JWT の署名に使う秘密鍵                                                                        |
+| `PORT`         | 待ち受けるポート（省略時は `3000`）                                                           |
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Prisma seed で作られるアカウント
 
-## Resources
+| メール         | パスワード | 内容                       |
+| -------------- | ---------- | -------------------------- |
+| `dev@al.com`   | `Dev.9999` | 開発用                     |
+| `large@al.com` | `Dev.9999` | ノードの多い庭が入っている |
 
-Check out a few resources that may come in handy when working with NestJS:
+## エンドポイント
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+`/auth/me`・`/todos`・`/gardens` には、サインインで発行される Cookie（`token`）が必要です。
 
-## Support
+| メソッド | パス                         | 内容                               |
+| -------- | ---------------------------- | ---------------------------------- |
+| POST     | `/auth/signup`               | サインアップ                       |
+| POST     | `/auth/signin`               | サインイン（Cookie を発行）        |
+| POST     | `/auth/signout`              | サインアウト（Cookie を削除）      |
+| GET      | `/auth/me`                   | サインイン中のユーザーを返す       |
+| GET      | `/todos`                     | Todo の一覧                        |
+| POST     | `/todos`                     | Todo の作成                        |
+| PUT      | `/todos/:id/title`           | タイトルの変更                     |
+| PUT      | `/todos/:id/target-duration` | 目標時間の変更                     |
+| DELETE   | `/todos/:id`                 | Todo の削除                        |
+| PATCH    | `/todos/:id/start`           | タイマーの開始                     |
+| PATCH    | `/todos/:id/complete`        | Todo の完了（庭にノードが生える）  |
+| GET      | `/gardens`                   | 使用中の庭（ノードとエッジ）を返す |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## ディレクトリ構成
 
-## Stay in touch
+| パス         | 内容                                 |
+| ------------ | ------------------------------------ |
+| `src/auth`   | サインアップ・サインイン・JWT の検証 |
+| `src/todo`   | Todo の操作、完了時のスコア計算      |
+| `src/garden` | 庭の取得                             |
+| `src/plant`  | ノードの生成と座標計算               |
+| `src/prisma` | PrismaService                        |
+| `prisma/`    | スキーマ・マイグレーション・シード   |
+| `scripts/`   | 運用・計測用のスクリプト             |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## スクリプト
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| コマンド                              | 内容                                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `npm test`                            | 単体テスト（Jest）                                                                                                 |
+| `npm run lint`                        | ESLint                                                                                                             |
+| `npm run typecheck`                   | 型チェック                                                                                                         |
+| `npx tsx scripts/maintenance-demo.ts` | デモアカウントの庭を育て直す。GitHub Actions から毎月1日に実行（`BASE_URL`・`DEMO_EMAIL`・`DEMO_PASSWORD` が必要） |
+| `npx tsx scripts/bench-calc-coord.ts` | ノードが 300 個と 1000 個のときの座標計算の時間を測る                                                              |
