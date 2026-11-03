@@ -1,10 +1,10 @@
 {
   "name": "@algarden/api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Backend API for ALGARDEN: auth, todos, and gardens",
+  "author": "Nima",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
