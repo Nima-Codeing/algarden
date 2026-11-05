@@ -36,7 +36,7 @@ export class TodoService {
    * @param {string} userId - 対象ユーザーのid
    * @returns {string} アクティブなGardenのid
    */
-  private async getActiveGardenId(userId: string): Promise<string> {
+  private async findOrCreateActiveGardenId(userId: string): Promise<string> {
     const garden = await this.gardenService.findOrCreateActive(userId);
     return garden.id;
   }
@@ -50,7 +50,7 @@ export class TodoService {
    * @returns {TodoResponse[]} Todo配列
    */
   async findAllByActiveGarden(userId: string): Promise<TodoResponse[]> {
-    const gardenId = await this.getActiveGardenId(userId);
+    const gardenId = await this.findOrCreateActiveGardenId(userId);
     return await this.prismaService.todo.findMany({
       select: todoSelect,
       where: { gardenId },
@@ -87,7 +87,7 @@ export class TodoService {
    * @returns {Todo} 作成したTodo
    */
   async create(userId: string, createTodoDto: CreateTodoDto): Promise<Todo> {
-    const gardenId = await this.getActiveGardenId(userId);
+    const gardenId = await this.findOrCreateActiveGardenId(userId);
     return await this.prismaService.todo.create({
       data: {
         ...createTodoDto,
