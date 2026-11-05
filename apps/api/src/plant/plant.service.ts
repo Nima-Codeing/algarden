@@ -48,7 +48,7 @@ export class PlantService {
    * @param {string} gardenId - 対象Gardenのid
    * @returns {Plant[]} Plant配列
    */
-  async getAllPlants(gardenId: string): Promise<Plant[]> {
+  async findAllByGarden(gardenId: string): Promise<Plant[]> {
     return await this.prismaService.plant.findMany({
       where: { gardenId },
     });

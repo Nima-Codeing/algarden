@@ -295,7 +295,9 @@ export class TodoService {
     // 更新用Plant要素 作成
     // NOTE: アクティブGardenではなくTodo自身のgardenIdを使う
     // 期間リセット後に前期間のTodoを完了した際、別GardenのPlantに生えるため
-    const plants = await this.plantService.getAllPlants(currentTodo.gardenId);
+    const plants = await this.plantService.findAllByGarden(
+      currentTodo.gardenId,
+    );
     if (plants.length === 0)
       throw new NotFoundException('Plantが見つかりませんでした。');
     const plantId = plants[Math.floor(Math.random() * plants.length)].id;

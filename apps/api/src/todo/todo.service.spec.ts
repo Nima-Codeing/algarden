@@ -20,7 +20,7 @@ describe('TodoService', () => {
   };
   const gardenMock = { findOrCreateActive: jest.fn() };
   const plantMock = {
-    getAllPlants: jest.fn(),
+    findAllByGarden: jest.fn(),
     calcGrowthStage: jest.fn(),
     grow: jest.fn(),
   };
@@ -109,7 +109,7 @@ describe('TodoService', () => {
         startedAt: new Date(),
         targetDuration: null,
       });
-      plantMock.getAllPlants.mockResolvedValue([{ id: 'plant-1' }]);
+      plantMock.findAllByGarden.mockResolvedValue([{ id: 'plant-1' }]);
       plantMock.calcGrowthStage.mockResolvedValue({
         curStage: 'SPROUT',
         isPromotion: false,
@@ -119,7 +119,7 @@ describe('TodoService', () => {
 
       await service.complete('todo-1', 'user-1');
 
-      expect(plantMock.getAllPlants).toHaveBeenCalledWith('garden-prev');
+      expect(plantMock.findAllByGarden).toHaveBeenCalledWith('garden-prev');
       expect(gardenMock.findOrCreateActive).not.toHaveBeenCalled();
     });
     it('異常系: 重複実行時、トランザクションエラーでgrowが走らないこと', async () => {
@@ -130,7 +130,7 @@ describe('TodoService', () => {
         completedAt: null,
         targetDuration: null,
       });
-      plantMock.getAllPlants.mockResolvedValueOnce([{ id: 'plant-1' }]);
+      plantMock.findAllByGarden.mockResolvedValueOnce([{ id: 'plant-1' }]);
       plantMock.calcGrowthStage.mockResolvedValueOnce({
         curStage: 'SPROUT',
         isPromotion: false,
