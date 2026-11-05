@@ -57,7 +57,7 @@ export class TodoController {
   }
 
   @Delete(':id')
-  async delete(
+  async remove(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
