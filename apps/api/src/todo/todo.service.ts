@@ -201,7 +201,7 @@ export class TodoService {
    * @param {string} userId - 削除するユーザのid
    * @throws {NotFoundException} 該当Todoが存在しない
    */
-  async delete(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: string): Promise<void> {
     try {
       await this.prismaService.todo.delete({
         where: {

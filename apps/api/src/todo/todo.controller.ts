@@ -61,7 +61,7 @@ export class TodoController {
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    await this.todoService.delete(id, userId);
+    await this.todoService.remove(id, userId);
   }
 
   // タイマー開始 + 同時起動チェック

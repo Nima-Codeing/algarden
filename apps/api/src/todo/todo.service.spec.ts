@@ -78,9 +78,9 @@ describe('TodoService', () => {
     });
   });
 
-  describe('delete', () => {
+  describe('remove', () => {
     it('他ユーザー・完了済のTodoを削除できないよう、削除条件にuserIdとcompletedAtを含める', async () => {
-      await service.delete('todo-1', 'user-1');
+      await service.remove('todo-1', 'user-1');
 
       expect(prismaMock.todo.delete).toHaveBeenCalledWith({
         where: { id: 'todo-1', userId: 'user-1', completedAt: null },
@@ -95,7 +95,7 @@ describe('TodoService', () => {
         }),
       );
 
-      await expect(service.delete('todo-1', 'user-1')).rejects.toThrow(
+      await expect(service.remove('todo-1', 'user-1')).rejects.toThrow(
         NotFoundException,
       );
     });
