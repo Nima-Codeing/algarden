@@ -10,7 +10,7 @@ export class GardenController {
   constructor(private readonly gardenService: GardenService) {}
 
   @Get()
-  async findByActive(
+  async findActive(
     @CurrentUser('id') userId: string,
   ): Promise<GardenWithPlants> {
     return await this.gardenService.findOrCreateActive(userId);
