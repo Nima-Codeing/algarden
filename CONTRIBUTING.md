@@ -452,6 +452,24 @@ M1 / M2 / M3 は開発上の重要マイルストーンを示す。
 
 ### NestJS 命名規則
 
+#### メソッド名
+
+- PascalCase。
+- Controller, Service, spec での命名。
+
+##### CRUD
+
+| 役割 | 例 |
+|--------|-----|
+| 作成 | create |
+| 取得 | findAll, findOne |
+| 更新 | update |
+| 削除 | remove |
+
+- スコープは `By<Scope>` を付与する。
+- 例外を投げるものは `OrThrow` を付与する。無印は null を返す。
+- 配列を返すものは null ではなく空配列を返す。
+
 #### クラス名
 
 PascalCase。ロール（役割）を suffix として付与する。
