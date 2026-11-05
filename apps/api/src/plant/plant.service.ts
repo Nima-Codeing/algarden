@@ -74,7 +74,7 @@ export class PlantService {
    * @param {string} plantId - 対象Plantのid
    * @returns {NodeWithChildrens[]} 子ノードを含む全ノード配列
    */
-  async getPlantNodes(
+  async findNodesByPlant(
     tx: Prisma.TransactionClient,
     plantId: string,
   ): Promise<NodeWithChildrens[]> {
@@ -301,7 +301,10 @@ export class PlantService {
 
     for (let i = 0; i < count; i++) {
       // 親ノード決定
-      const nodes: NodeWithChildrens[] = await this.getPlantNodes(tx, plantId);
+      const nodes: NodeWithChildrens[] = await this.findNodesByPlant(
+        tx,
+        plantId,
+      );
       if (nodes.filter((n) => n.parentId === null).length !== 1) {
         throw new Error('Nodes情報が壊れています。');
       }
@@ -323,7 +326,7 @@ export class PlantService {
       }
 
       // 座標シミュレート
-      const createdNodes = await this.getPlantNodes(tx, plantId);
+      const createdNodes = await this.findNodesByPlant(tx, plantId);
       const createdEdges = await this.getPlantEdges(tx, plantId);
       const moveNodes = calcCoord(createdNodes, createdEdges, newNode.id);
 
