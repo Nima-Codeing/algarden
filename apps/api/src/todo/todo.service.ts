@@ -65,7 +65,10 @@ export class TodoService {
    * @returns {Todo} 取り組み中のTodo
    * @throws {Error} 該当Todoが存在しない場合
    */
-  private async getTodoInProgress(id: string, userId: string): Promise<Todo> {
+  private async findInProgressOrThrow(
+    id: string,
+    userId: string,
+  ): Promise<Todo> {
     return await this.prismaService.todo.findFirstOrThrow({
       where: {
         id,
@@ -279,7 +282,7 @@ export class TodoService {
    */
   async complete(id: string, userId: string): Promise<PlantNodeResponse[]> {
     // 更新用Todo 作成
-    const currentTodo = await this.getTodoInProgress(id, userId);
+    const currentTodo = await this.findInProgressOrThrow(id, userId);
     const completeTodo: CompleteTodo = {
       startedAt: currentTodo.startedAt!,
       completedAt: new Date(),
