@@ -108,7 +108,7 @@ export class PlantService {
    * @param {string} plantId - 対象Plantのid
    * @returns {PlantEdge[]} 主エッジ・副エッジを含む全エッジ配列
    */
-  async getPlantEdges(
+  async findEdgesByPlant(
     tx: Prisma.TransactionClient,
     plantId: string,
   ): Promise<PlantEdge[]> {
@@ -327,7 +327,7 @@ export class PlantService {
 
       // 座標シミュレート
       const createdNodes = await this.findNodesByPlant(tx, plantId);
-      const createdEdges = await this.getPlantEdges(tx, plantId);
+      const createdEdges = await this.findEdgesByPlant(tx, plantId);
       const moveNodes = calcCoord(createdNodes, createdEdges, newNode.id);
 
       // シミュレート後の座標を保存
@@ -460,7 +460,7 @@ export class PlantService {
     flashPointId: string,
   ) {
     // 全エッジ取得
-    const tempEdges = await this.getPlantEdges(tx, plantId);
+    const tempEdges = await this.findEdgesByPlant(tx, plantId);
     // 着火点 - 新ノード間エッジ除外
     const edges = tempEdges.filter((e) => e.id !== mainEdgeId);
 
