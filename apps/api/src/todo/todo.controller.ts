@@ -27,7 +27,7 @@ export class TodoController {
 
   @Get()
   async findAll(@CurrentUser('id') userId: string): Promise<TodoResponse[]> {
-    return await this.todoService.findActiveGardenTodos(userId);
+    return await this.todoService.findAllByActiveGarden(userId);
   }
 
   @Post()
@@ -57,11 +57,11 @@ export class TodoController {
   }
 
   @Delete(':id')
-  async delete(
+  async remove(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    await this.todoService.delete(id, userId);
+    await this.todoService.remove(id, userId);
   }
 
   // タイマー開始 + 同時起動チェック

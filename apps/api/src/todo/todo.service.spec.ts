@@ -18,9 +18,9 @@ describe('TodoService', () => {
     },
     $transaction: jest.fn(),
   };
-  const gardenMock = { getActive: jest.fn() };
+  const gardenMock = { findOrCreateActive: jest.fn() };
   const plantMock = {
-    getAllPlants: jest.fn(),
+    findAllByGarden: jest.fn(),
     calcGrowthStage: jest.fn(),
     grow: jest.fn(),
   };
@@ -78,9 +78,9 @@ describe('TodoService', () => {
     });
   });
 
-  describe('delete', () => {
+  describe('remove', () => {
     it('他ユーザー・完了済のTodoを削除できないよう、削除条件にuserIdとcompletedAtを含める', async () => {
-      await service.delete('todo-1', 'user-1');
+      await service.remove('todo-1', 'user-1');
 
       expect(prismaMock.todo.delete).toHaveBeenCalledWith({
         where: { id: 'todo-1', userId: 'user-1', completedAt: null },
@@ -95,7 +95,7 @@ describe('TodoService', () => {
         }),
       );
 
-      await expect(service.delete('todo-1', 'user-1')).rejects.toThrow(
+      await expect(service.remove('todo-1', 'user-1')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -109,7 +109,7 @@ describe('TodoService', () => {
         startedAt: new Date(),
         targetDuration: null,
       });
-      plantMock.getAllPlants.mockResolvedValue([{ id: 'plant-1' }]);
+      plantMock.findAllByGarden.mockResolvedValue([{ id: 'plant-1' }]);
       plantMock.calcGrowthStage.mockResolvedValue({
         curStage: 'SPROUT',
         isPromotion: false,
@@ -119,8 +119,8 @@ describe('TodoService', () => {
 
       await service.complete('todo-1', 'user-1');
 
-      expect(plantMock.getAllPlants).toHaveBeenCalledWith('garden-prev');
-      expect(gardenMock.getActive).not.toHaveBeenCalled();
+      expect(plantMock.findAllByGarden).toHaveBeenCalledWith('garden-prev');
+      expect(gardenMock.findOrCreateActive).not.toHaveBeenCalled();
     });
     it('異常系: 重複実行時、トランザクションエラーでgrowが走らないこと', async () => {
       prismaMock.todo.findFirstOrThrow.mockResolvedValueOnce({
@@ -130,7 +130,7 @@ describe('TodoService', () => {
         completedAt: null,
         targetDuration: null,
       });
-      plantMock.getAllPlants.mockResolvedValueOnce([{ id: 'plant-1' }]);
+      plantMock.findAllByGarden.mockResolvedValueOnce([{ id: 'plant-1' }]);
       plantMock.calcGrowthStage.mockResolvedValueOnce({
         curStage: 'SPROUT',
         isPromotion: false,
@@ -221,7 +221,7 @@ describe('TodoService', () => {
           completedAt: null,
         },
       });
-      expect(gardenMock.getActive).not.toHaveBeenCalled();
+      expect(gardenMock.findOrCreateActive).not.toHaveBeenCalled();
     });
   });
 });

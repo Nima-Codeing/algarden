@@ -36,8 +36,8 @@ export class TodoService {
    * @param {string} userId - 対象ユーザーのid
    * @returns {string} アクティブなGardenのid
    */
-  private async getActiveGardenId(userId: string): Promise<string> {
-    const garden = await this.gardenService.getActive(userId);
+  private async findOrCreateActiveGardenId(userId: string): Promise<string> {
+    const garden = await this.gardenService.findOrCreateActive(userId);
     return garden.id;
   }
 
@@ -49,8 +49,8 @@ export class TodoService {
    * @param {string} userId - 対象ユーザーのid
    * @returns {TodoResponse[]} Todo配列
    */
-  async findActiveGardenTodos(userId: string): Promise<TodoResponse[]> {
-    const gardenId = await this.getActiveGardenId(userId);
+  async findAllByActiveGarden(userId: string): Promise<TodoResponse[]> {
+    const gardenId = await this.findOrCreateActiveGardenId(userId);
     return await this.prismaService.todo.findMany({
       select: todoSelect,
       where: { gardenId },
@@ -65,7 +65,10 @@ export class TodoService {
    * @returns {Todo} 取り組み中のTodo
    * @throws {Error} 該当Todoが存在しない場合
    */
-  private async getTodoInProgress(id: string, userId: string): Promise<Todo> {
+  private async findInProgressOrThrow(
+    id: string,
+    userId: string,
+  ): Promise<Todo> {
     return await this.prismaService.todo.findFirstOrThrow({
       where: {
         id,
@@ -84,7 +87,7 @@ export class TodoService {
    * @returns {Todo} 作成したTodo
    */
   async create(userId: string, createTodoDto: CreateTodoDto): Promise<Todo> {
-    const gardenId = await this.getActiveGardenId(userId);
+    const gardenId = await this.findOrCreateActiveGardenId(userId);
     return await this.prismaService.todo.create({
       data: {
         ...createTodoDto,
@@ -198,7 +201,7 @@ export class TodoService {
    * @param {string} userId - 削除するユーザのid
    * @throws {NotFoundException} 該当Todoが存在しない
    */
-  async delete(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: string): Promise<void> {
     try {
       await this.prismaService.todo.delete({
         where: {
@@ -279,7 +282,7 @@ export class TodoService {
    */
   async complete(id: string, userId: string): Promise<PlantNodeResponse[]> {
     // 更新用Todo 作成
-    const currentTodo = await this.getTodoInProgress(id, userId);
+    const currentTodo = await this.findInProgressOrThrow(id, userId);
     const completeTodo: CompleteTodo = {
       startedAt: currentTodo.startedAt!,
       completedAt: new Date(),
@@ -292,7 +295,9 @@ export class TodoService {
     // 更新用Plant要素 作成
     // NOTE: アクティブGardenではなくTodo自身のgardenIdを使う
     // 期間リセット後に前期間のTodoを完了した際、別GardenのPlantに生えるため
-    const plants = await this.plantService.getAllPlants(currentTodo.gardenId);
+    const plants = await this.plantService.findAllByGarden(
+      currentTodo.gardenId,
+    );
     if (plants.length === 0)
       throw new NotFoundException('Plantが見つかりませんでした。');
     const plantId = plants[Math.floor(Math.random() * plants.length)].id;

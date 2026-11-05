@@ -48,7 +48,7 @@ export class PlantService {
    * @param {string} gardenId - 対象Gardenのid
    * @returns {Plant[]} Plant配列
    */
-  async getAllPlants(gardenId: string): Promise<Plant[]> {
+  async findAllByGarden(gardenId: string): Promise<Plant[]> {
     return await this.prismaService.plant.findMany({
       where: { gardenId },
     });
@@ -61,7 +61,7 @@ export class PlantService {
    * @returns {Plant} 取得したPlant
    * @throws {Error} 該当Plantが存在しない場合
    */
-  async getPlant(id: string): Promise<Plant> {
+  async findOneOrThrow(id: string): Promise<Plant> {
     return await this.prismaService.plant.findUniqueOrThrow({
       where: { id },
     });
@@ -74,7 +74,7 @@ export class PlantService {
    * @param {string} plantId - 対象Plantのid
    * @returns {NodeWithChildrens[]} 子ノードを含む全ノード配列
    */
-  async getPlantNodes(
+  async findNodesByPlant(
     tx: Prisma.TransactionClient,
     plantId: string,
   ): Promise<NodeWithChildrens[]> {
@@ -108,7 +108,7 @@ export class PlantService {
    * @param {string} plantId - 対象Plantのid
    * @returns {PlantEdge[]} 主エッジ・副エッジを含む全エッジ配列
    */
-  async getPlantEdges(
+  async findEdgesByPlant(
     tx: Prisma.TransactionClient,
     plantId: string,
   ): Promise<PlantEdge[]> {
@@ -219,7 +219,7 @@ export class PlantService {
     plantId: string,
     addNodeCnt: number,
   ): Promise<GrowthStageResult> {
-    const plant = await this.getPlant(plantId);
+    const plant = await this.findOneOrThrow(plantId);
     const curNodeCnt = plant.nodeCount + addNodeCnt;
 
     const curStage: GrowthStage =
@@ -301,7 +301,10 @@ export class PlantService {
 
     for (let i = 0; i < count; i++) {
       // 親ノード決定
-      const nodes: NodeWithChildrens[] = await this.getPlantNodes(tx, plantId);
+      const nodes: NodeWithChildrens[] = await this.findNodesByPlant(
+        tx,
+        plantId,
+      );
       if (nodes.filter((n) => n.parentId === null).length !== 1) {
         throw new Error('Nodes情報が壊れています。');
       }
@@ -323,8 +326,8 @@ export class PlantService {
       }
 
       // 座標シミュレート
-      const createdNodes = await this.getPlantNodes(tx, plantId);
-      const createdEdges = await this.getPlantEdges(tx, plantId);
+      const createdNodes = await this.findNodesByPlant(tx, plantId);
+      const createdEdges = await this.findEdgesByPlant(tx, plantId);
       const moveNodes = calcCoord(createdNodes, createdEdges, newNode.id);
 
       // シミュレート後の座標を保存
@@ -457,7 +460,7 @@ export class PlantService {
     flashPointId: string,
   ) {
     // 全エッジ取得
-    const tempEdges = await this.getPlantEdges(tx, plantId);
+    const tempEdges = await this.findEdgesByPlant(tx, plantId);
     // 着火点 - 新ノード間エッジ除外
     const edges = tempEdges.filter((e) => e.id !== mainEdgeId);
 
