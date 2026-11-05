@@ -21,7 +21,7 @@ export class GardenService {
    * @param userId
    * @returns
    */
-  async getActive(userId: string): Promise<GardenWithPlants> {
+  async findOrCreateActive(userId: string): Promise<GardenWithPlants> {
     // Active Garden 有無確認
     const endAt = this.dateService.getNextMonthFirstDayUTC();
 

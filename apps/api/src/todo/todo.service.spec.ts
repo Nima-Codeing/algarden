@@ -18,7 +18,7 @@ describe('TodoService', () => {
     },
     $transaction: jest.fn(),
   };
-  const gardenMock = { getActive: jest.fn() };
+  const gardenMock = { findOrCreateActive: jest.fn() };
   const plantMock = {
     getAllPlants: jest.fn(),
     calcGrowthStage: jest.fn(),
@@ -120,7 +120,7 @@ describe('TodoService', () => {
       await service.complete('todo-1', 'user-1');
 
       expect(plantMock.getAllPlants).toHaveBeenCalledWith('garden-prev');
-      expect(gardenMock.getActive).not.toHaveBeenCalled();
+      expect(gardenMock.findOrCreateActive).not.toHaveBeenCalled();
     });
     it('異常系: 重複実行時、トランザクションエラーでgrowが走らないこと', async () => {
       prismaMock.todo.findFirstOrThrow.mockResolvedValueOnce({
@@ -221,7 +221,7 @@ describe('TodoService', () => {
           completedAt: null,
         },
       });
-      expect(gardenMock.getActive).not.toHaveBeenCalled();
+      expect(gardenMock.findOrCreateActive).not.toHaveBeenCalled();
     });
   });
 });

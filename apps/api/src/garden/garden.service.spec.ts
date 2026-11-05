@@ -49,12 +49,12 @@ describe('GardenService', () => {
     service = module.get<GardenService>(GardenService);
   });
 
-  describe('getActive', () => {
+  describe('findOrCreateActive', () => {
     it('対象期間の庭が存在する場合、新規作成せずそれを返す', async () => {
       const mockGarden = { id: 'garden1' };
       prismaMock.garden.findUnique.mockResolvedValue(mockGarden);
 
-      const res = await service.getActive('user1');
+      const res = await service.findOrCreateActive('user1');
 
       expect(res).toEqual(mockGarden);
       expect(prismaMock.garden.findUnique).toHaveBeenCalledWith({
@@ -74,7 +74,7 @@ describe('GardenService', () => {
       prismaMock.garden.create.mockResolvedValue({ id: 'garden1' });
       prismaMock.seed.create.mockResolvedValue({ id: 'seed1' });
 
-      await service.getActive('user1');
+      await service.findOrCreateActive('user1');
 
       expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
       expect(prismaMock.garden.create).toHaveBeenCalledTimes(1);
@@ -110,7 +110,7 @@ describe('GardenService', () => {
         }),
       );
 
-      await service.getActive('user1');
+      await service.findOrCreateActive('user1');
 
       expect(prismaMock.garden.findUniqueOrThrow).toHaveBeenCalledTimes(1);
     });

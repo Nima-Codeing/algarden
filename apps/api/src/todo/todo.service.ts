@@ -37,7 +37,7 @@ export class TodoService {
    * @returns {string} アクティブなGardenのid
    */
   private async getActiveGardenId(userId: string): Promise<string> {
-    const garden = await this.gardenService.getActive(userId);
+    const garden = await this.gardenService.findOrCreateActive(userId);
     return garden.id;
   }
 

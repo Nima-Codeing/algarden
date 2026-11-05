@@ -13,6 +13,6 @@ export class GardenController {
   async findByActive(
     @CurrentUser('id') userId: string,
   ): Promise<GardenWithPlants> {
-    return await this.gardenService.getActive(userId);
+    return await this.gardenService.findOrCreateActive(userId);
   }
 }
