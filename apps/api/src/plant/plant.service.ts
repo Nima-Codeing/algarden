@@ -61,7 +61,7 @@ export class PlantService {
    * @returns {Plant} 取得したPlant
    * @throws {Error} 該当Plantが存在しない場合
    */
-  async getPlant(id: string): Promise<Plant> {
+  async findOneOrThrow(id: string): Promise<Plant> {
     return await this.prismaService.plant.findUniqueOrThrow({
       where: { id },
     });
@@ -219,7 +219,7 @@ export class PlantService {
     plantId: string,
     addNodeCnt: number,
   ): Promise<GrowthStageResult> {
-    const plant = await this.getPlant(plantId);
+    const plant = await this.findOneOrThrow(plantId);
     const curNodeCnt = plant.nodeCount + addNodeCnt;
 
     const curStage: GrowthStage =
