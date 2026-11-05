@@ -49,7 +49,7 @@ export class TodoService {
    * @param {string} userId - 対象ユーザーのid
    * @returns {TodoResponse[]} Todo配列
    */
-  async findActiveGardenTodos(userId: string): Promise<TodoResponse[]> {
+  async findAllByActiveGarden(userId: string): Promise<TodoResponse[]> {
     const gardenId = await this.getActiveGardenId(userId);
     return await this.prismaService.todo.findMany({
       select: todoSelect,

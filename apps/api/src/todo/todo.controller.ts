@@ -27,7 +27,7 @@ export class TodoController {
 
   @Get()
   async findAll(@CurrentUser('id') userId: string): Promise<TodoResponse[]> {
-    return await this.todoService.findActiveGardenTodos(userId);
+    return await this.todoService.findAllByActiveGarden(userId);
   }
 
   @Post()
