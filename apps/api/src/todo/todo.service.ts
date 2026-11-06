@@ -21,6 +21,7 @@ import {
   todoSelect,
 } from './types/todo.types';
 import { COMPLETE_TX_TIMEOUT_MS } from './todo.constants';
+import { RandomService } from '../common/random/random.service';
 
 @Injectable()
 export class TodoService {
@@ -28,6 +29,7 @@ export class TodoService {
     private readonly prismaService: PrismaService,
     private readonly gardenService: GardenService,
     private readonly plantService: PlantService,
+    private readonly randomService: RandomService,
   ) {}
 
   /**
@@ -300,7 +302,8 @@ export class TodoService {
     );
     if (plants.length === 0)
       throw new NotFoundException('Plantが見つかりませんでした。');
-    const plantId = plants[Math.floor(Math.random() * plants.length)].id;
+    const plantId =
+      plants[Math.floor(this.randomService.between(0, 1) * plants.length)].id;
 
     // 更新用成長段階 作成
     const growthStat = await this.plantService.calcGrowthStage(
