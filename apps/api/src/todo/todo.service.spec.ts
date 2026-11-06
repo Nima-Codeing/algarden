@@ -5,9 +5,11 @@ import { GardenService } from '../garden/garden.service';
 import { PlantService } from '../plant/plant.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { RandomService } from '../common/random/random.service';
 
 describe('TodoService', () => {
   let service: TodoService;
+  let randomService: RandomService;
 
   const prismaMock = {
     todo: {
@@ -24,6 +26,7 @@ describe('TodoService', () => {
     calcGrowthStage: jest.fn(),
     grow: jest.fn(),
   };
+  const randomMock = { between: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -38,11 +41,17 @@ describe('TodoService', () => {
         { provide: PrismaService, useValue: prismaMock },
         { provide: GardenService, useValue: gardenMock },
         { provide: PlantService, useValue: plantMock },
+        { provide: RandomService, useValue: randomMock },
       ],
     }).compile();
 
     service = module.get<TodoService>(TodoService);
+    randomService = module.get<RandomService>(RandomService);
   });
+
+  // 結果を固定するヘルパー関数
+  const mockBetween = (result: number) =>
+    jest.spyOn(randomService, 'between').mockReturnValue(result);
 
   const prismaError = (code: string) =>
     new PrismaClientKnownRequestError('', { code, clientVersion: 'test' });
@@ -102,7 +111,8 @@ describe('TodoService', () => {
   });
 
   describe('complete', () => {
-    it('前期間のTodoでも、Todo自身のgardenIdのPlantに生やす', async () => {
+    it('正常系: 前期間のTodoでも、Todo自身のgardenIdのPlantに生やす', async () => {
+      mockBetween(0);
       prismaMock.todo.findFirstOrThrow.mockResolvedValue({
         id: 'todo-1',
         gardenId: 'garden-prev',
@@ -122,7 +132,9 @@ describe('TodoService', () => {
       expect(plantMock.findAllByGarden).toHaveBeenCalledWith('garden-prev');
       expect(gardenMock.findOrCreateActive).not.toHaveBeenCalled();
     });
+
     it('異常系: 重複実行時、トランザクションエラーでgrowが走らないこと', async () => {
+      mockBetween(0);
       prismaMock.todo.findFirstOrThrow.mockResolvedValueOnce({
         id: 'todo-1',
         gardenId: 'garden-prev',
@@ -149,6 +161,32 @@ describe('TodoService', () => {
         }),
       );
       expect(plantMock.grow).not.toHaveBeenCalled();
+    });
+
+    it('正常系: Plantの抽選でbetween()が効いていること', async () => {
+      mockBetween(0.5); // = plant[1]
+      prismaMock.todo.findFirstOrThrow.mockResolvedValueOnce({
+        id: 'todo-1',
+        gardenId: 'garden-1',
+        startedAt: new Date(),
+        targetDuration: null,
+      });
+      plantMock.findAllByGarden.mockResolvedValueOnce([
+        { id: 'plant-1' },
+        { id: 'plant-2' },
+        { id: 'plant-3' },
+      ]);
+      plantMock.calcGrowthStage.mockResolvedValueOnce({
+        curStage: 'SPROUT',
+        isPromotion: false,
+      });
+
+      await service.complete('todo-1', 'user-1');
+
+      expect(plantMock.calcGrowthStage).toHaveBeenCalledWith(
+        'plant-2', // plant[1]を取得していること
+        expect.anything(),
+      );
     });
   });
 
