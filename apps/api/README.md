@@ -89,6 +89,7 @@ ALGARDEN のバックエンドです。認証・Todo・庭（ノードネット�
 | `src/prisma` | PrismaService                        |
 | `prisma/`    | スキーマ・マイグレーション・シード   |
 | `scripts/`   | 運用・計測用のスクリプト             |
+| `test/`      | e2e テストと、`.env.test` を読み込む設定 |
 
 ## スクリプト
 
@@ -99,3 +100,38 @@ ALGARDEN のバックエンドです。認証・Todo・庭（ノードネット�
 | `npm run typecheck`                   | 型チェック                                                                                                         |
 | `npx tsx scripts/maintenance-demo.ts` | デモアカウントの庭を育て直す。GitHub Actions から毎月1日に実行（`BASE_URL`・`DEMO_EMAIL`・`DEMO_PASSWORD` が必要） |
 | `npx tsx scripts/bench-calc-coord.ts` | ノードが 300 個と 1000 個のときの座標計算の時間を測る                                                              |
+| `npm run test:e2e`                    | e2e テスト（Jest）。テスト用 DB に接続する。準備は「e2e テスト」を参照                                             |
+
+## e2e テスト
+
+API にリクエストを送り、実際の PostgreSQL まで通して確かめます。接続先は開発用とは別のテスト用 DB（`algarden_test`）で、`.env.test` から読み込みます。
+
+### 準備（初回だけ）
+
+PostgreSQL を起動しておきます（「ローカルでの起動」の 2）。
+
+1. テスト用 DB を作る
+
+   ```bash
+   docker exec algarden-db createdb -U algarden algarden_test
+   ```
+
+2. テスト用 DB にマイグレーションを適用する（`apps/api` で実行）
+
+   ```bash
+   DATABASE_URL=postgresql://algarden:algarden@localhost:5433/algarden_test npx prisma migrate deploy
+   ```
+
+マイグレーションを追加したときは、2 をもう一度実行します。
+
+### 実行
+
+`apps/api` で実行します。
+
+```bash
+npm run test:e2e
+```
+
+- テストごとに、テスト用 DB の全テーブルを空にします。
+- 接続先の DB 名が `_test` で終わらない場合は、テストを始める前に止まります。開発用 DB のデータを消さないためです。
+- `.env.test` はコミットされます。`.env` や本番の値は入れないでください。

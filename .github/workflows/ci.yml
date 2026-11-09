@@ -26,7 +26,7 @@ jobs:
         env:
           POSTGRES_USER: algarden
           POSTGRES_PASSWORD: algarden
-          POSTGRES_DB: algarden
+          POSTGRES_DB: algarden_test
         ports:
           - 5432:5432
         options: >-
@@ -36,7 +36,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://algarden:algarden@localhost:5432/algarden
+      DATABASE_URL: postgresql://algarden:algarden@localhost:5432/algarden_test
 
     steps:
       - name: Checkout repository
@@ -67,6 +67,10 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: E2E test
+        working-directory: apps/api
+        run: npm run test:e2e
 
       - name: Build
         run: npm run build
